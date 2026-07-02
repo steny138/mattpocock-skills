@@ -55,9 +55,11 @@ The answer isn't part of the body — it's recorded on resolution (see [Work thr
 
 ## Fog of war
 
-The map is _deliberately_ incomplete beyond the frontier — don't chart what you can't yet see. Only the frontier becomes real tickets; everything dimmer stays fog until it comes into focus. Resolving a frontier ticket pushes the frontier forward, graduating fog into fresh tickets — one ticket at a time, until the way to the goal is clear and no tickets remain.
+The map is _deliberately_ incomplete: don't chart what you can't yet see. Beyond the tickets lies fog — the dim view of decisions and investigations you can tell are coming but can't yet pin down, because they hang on questions still open. Resolving a ticket clears the fog ahead of it, graduating whatever's now specifiable into fresh tickets — one at a time, until the way to the goal is clear and no tickets remain.
 
-The map's **Fog** section is where that dim view is written down: decisions and investigations you can already tell are coming but can't specify yet, because they hang on questions the frontier hasn't answered — the suspected question, the area to revisit later, the risk you're deferring. Write as loosely or as fully as the view allows; it doubles as a signpost for collaborators reading where the effort is headed. Keep out what's already decided (that belongs in Decisions so far) and what's actionable now (that becomes a ticket).
+The map's **Fog** section is where that dim view is written down: the suspected question, the area to revisit later, the risk you're deferring. Write as loosely or as fully as the view allows; it doubles as a signpost for collaborators reading where the effort is headed.
+
+**Fog or ticket?** The test is whether you can state the question precisely now — _not_ whether you can answer it now. A blocked ticket you can't act on yet is still a ticket, because its question is already sharp; fog is what you can't yet phrase that sharply. So don't pre-slice fog into ticket-sized pieces — it's coarser than a ticket, and one patch may graduate into several tickets, or none, once the frontier reaches it. Fog excludes only what's already decided (that's Decisions so far) and what's already a ticket.
 
 ## Invocation
 
@@ -69,7 +71,7 @@ User invokes with a loose idea.
 
 1. Run a `/grilling` and `/domain-modeling` session to surface the open decisions.
 2. **Create the map** (label `wayfinder:map`): Notes filled in, Decisions-so-far empty, Fog sketched.
-3. **Create the frontier tickets** as child issues of the map — then wire blocking edges in a **second pass** (issues need ids before they can reference each other).
+3. **Create the tickets you can specify now** as child issues of the map — then wire blocking edges in a **second pass** (issues need ids before they can reference each other). Wiring sorts them into the frontier and the blocked; everything you can't yet specify stays in the Fog.
 4. Handoff. Charting the map is one session's work; do not also resolve tickets.
 
 ### Work through the map
@@ -80,7 +82,7 @@ User invokes with a map (URL or number). A ticket is **optional** — without on
 2. Choose the ticket. If the user named one, use it. Otherwise take the first frontier ticket in order. **Claim it**: set `wayfinder:claimed` and save before any work.
 3. Resolve it — **zoom as needed**: fetch the full body of any related or closed ticket on demand; invoke the skills the `## Notes` block names. If in doubt, use `/grilling` and `/domain-modeling`.
 4. Record the resolution: post the answer as a **resolution comment**, **close** the issue, and **append a context pointer** to the map's Decisions-so-far.
-5. Add newly-surfaced frontier tickets (create-then-wire); graduate fog that's now actionable. If the decision invalidates other parts of the map, update or delete those tickets.
+5. Add newly-surfaced tickets (create-then-wire); graduate any fog the answer has made specifiable. If the decision invalidates other parts of the map, update or delete those tickets.
 6. Handoff.
 
 The user may run unblocked tickets in parallel, so expect other sessions to be editing the tracker concurrently.
