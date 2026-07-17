@@ -122,4 +122,4 @@ Do not repeat requirements from a workspace-readable source. Point to it and inc
 
 ### 5. Stop at the boundary
 
-Show the user the plan path, task list, test seams, and any remaining risks. Ask for confirmation. Do not edit product code, stage files, commit, push, or invoke `/execute-plan` in this invocation.
+Show the user the plan path, task list, test seams, and any remaining risks. Ask for confirmation. Do not edit product code, stage files, commit, push, or invoke `/implement` in this invocation.
