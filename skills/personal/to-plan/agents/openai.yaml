@@ -1,0 +1,5 @@
+interface:
+  display_name: "To Plan"
+  short_description: "Create a resumable implementation plan"
+policy:
+  allow_implicit_invocation: false

@@ -1,0 +1,5 @@
+interface:
+  display_name: "Execute Plan"
+  short_description: "Execute and track a local plan"
+policy:
+  allow_implicit_invocation: false
