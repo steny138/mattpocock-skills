@@ -16,7 +16,7 @@ The plan is a local coordination artifact for agents sharing one workspace. Writ
 
 Read the source the user supplied in full. If the source is the conversation or anything another agent cannot read from the workspace, capture the agreed work-item contract and acceptance criteria in the plan. Resolve any interpretation that would change scope, public behavior, architecture, or test seams with the user before writing the plan.
 
-Plan one work item only. For a set of tracer-bullet issues, plan only the selected frontier issue rather than the whole feature.
+Plan one work item only. For a set of tracer-bullet issues, plan only the selected frontier issue rather than the whole feature. This is not the cross-ticket planner removed when planning was unified into `/to-spec` and `/to-tickets`.
 
 ### 2. Inspect the workspace
 
