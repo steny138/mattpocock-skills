@@ -44,4 +44,4 @@ They run as parallel sub-agents so neither pollutes the other's context, and the
 grill-with-docs → to-spec → to-tickets → to-plan → implement → code-review
 ```
 
-Its closest neighbour is [implement](https://aihero.dev/skills-implement), which drives the build and calls this as its completion gate; upstream, the feature spec comes from [to-spec](https://aihero.dev/skills-to-spec), the selected ticket comes from [to-tickets](https://aihero.dev/skills-to-tickets), and its implementation detail comes from [to-plan](https://aihero.dev/skills-to-plan). When you're unsure which skill or flow fits, [ask-matt](https://aihero.dev/skills-ask-matt) routes you.
+Its closest neighbour is [implement](https://aihero.dev/skills-implement), which drives the build and calls this as its completion gate; upstream, the feature spec comes from [to-spec](https://aihero.dev/skills-to-spec), the selected Issue comes from [to-tickets](https://aihero.dev/skills-to-tickets), and its implementation detail comes from [to-plan](https://aihero.dev/skills-to-plan). When you're unsure which skill or flow fits, [ask-matt](https://aihero.dev/skills-ask-matt) routes you.

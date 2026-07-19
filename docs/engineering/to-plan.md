@@ -14,13 +14,13 @@ npx skills update to-plan
 
 `to-plan` turns one selected work item into a disposable local implementation plan that another agent in the same workspace can execute and resume.
 
-It plans exactly one work item and stops before implementation. It does not replace the feature-level spec or split work across tickets; [to-spec](https://aihero.dev/skills-to-spec) and [to-tickets](https://aihero.dev/skills-to-tickets) retain those responsibilities.
+It plans exactly one work item and stops before implementation. It does not replace the feature-level spec or split work across Issues; [to-spec](https://aihero.dev/skills-to-spec) and [to-tickets](https://aihero.dev/skills-to-tickets) retain those responsibilities.
 
 ## When to reach for it
 
 You invoke this by typing `/to-plan` — the agent won't reach for it on its own.
 
-Reach for it after selecting one frontier issue from [to-tickets](https://aihero.dev/skills-to-tickets), or whenever one small work item is understood but still needs implementation detail before code changes. If requirements are not settled, use [to-spec](https://aihero.dev/skills-to-spec); if the work still needs slicing, use `to-tickets` first.
+Reach for it after selecting one frontier Issue from [to-tickets](https://aihero.dev/skills-to-tickets), or whenever one small work item is understood but still needs implementation detail before code changes. If requirements are not settled, use [to-spec](https://aihero.dev/skills-to-spec); if the work still needs slicing, use `to-tickets` first.
 
 ## Prerequisites
 
@@ -48,4 +48,4 @@ The plan owns **how** one work item will be implemented. A workspace-readable sp
 grill-with-docs → to-spec → to-tickets → to-plan → implement → code-review
 ```
 
-Its upstream neighbour is [to-tickets](https://aihero.dev/skills-to-tickets), which owns tracer-bullet issues and blocking edges. Its downstream neighbour is [implement](https://aihero.dev/skills-implement), which executes the approved plan while recording progress and evidence. When you're unsure which skill or flow fits, [ask-matt](https://aihero.dev/skills-ask-matt) routes you.
+Its upstream neighbour is [to-tickets](https://aihero.dev/skills-to-tickets), which owns tracer-bullet Issues and blocking edges. Its downstream neighbour is [implement](https://aihero.dev/skills-implement), which executes the approved plan while recording progress and evidence. When you're unsure which skill or flow fits, [ask-matt](https://aihero.dev/skills-ask-matt) routes you.
