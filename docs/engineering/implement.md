@@ -20,7 +20,7 @@ It does not decide what to build or silently redesign a stale plan. Material dev
 
 You invoke this by typing `/implement` — the agent won't reach for it on its own.
 
-Reach for it after [to-plan](https://aihero.dev/skills-to-plan) has written an approved plan for one work item. If you only have a feature-level spec, use [to-tickets](https://aihero.dev/skills-to-tickets) to produce tracer-bullet issues, then plan the selected frontier issue before implementation.
+Reach for it after [to-plan](https://aihero.dev/skills-to-plan) has written an approved plan for one work item. If you only have a feature-level spec, use [to-tickets](https://aihero.dev/skills-to-tickets) to produce tracer-bullet Issues, then plan the selected frontier Issue before implementation.
 
 ## The resumable plan
 
@@ -44,4 +44,4 @@ The local plan document is the seam between planning and execution. It records t
 grill-with-docs → to-spec → to-tickets → to-plan → implement → code-review
 ```
 
-Its upstream neighbour is [to-plan](https://aihero.dev/skills-to-plan), which owns implementation detail for one frontier issue. Its internal disciplines are [tdd](https://aihero.dev/skills-tdd), which supplies the red-green loop at pre-agreed seams, and [code-review](https://aihero.dev/skills-code-review), which gates completion against the plan's fixed point. When you're unsure which skill or flow fits, [ask-matt](https://aihero.dev/skills-ask-matt) routes you.
+Its upstream neighbour is [to-plan](https://aihero.dev/skills-to-plan), which owns implementation detail for one frontier Issue. Its internal disciplines are [tdd](https://aihero.dev/skills-tdd), which supplies the red-green loop at pre-agreed seams, and [code-review](https://aihero.dev/skills-code-review), which gates completion against the plan's fixed point. When you're unsure which skill or flow fits, [ask-matt](https://aihero.dev/skills-ask-matt) routes you.

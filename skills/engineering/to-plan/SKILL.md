@@ -6,7 +6,7 @@ disable-model-invocation: true
 
 # To Plan
 
-Turn a conversation, spec, issue, or other single work item into an implementation plan. The plan owns **how** the work will be done; a workspace-readable source normally owns **what** must be delivered.
+Turn a conversation, spec, Issue, or other single work item into an implementation plan. The plan owns **how** the work will be done; a workspace-readable source normally owns **what** must be delivered.
 
 The plan is a local coordination artifact for agents sharing one workspace. Write it, present it, and stop. Never implement from the same invocation.
 
@@ -55,7 +55,7 @@ Use this structure:
 ```markdown
 # <Work Item> Implementation Plan
 
-**Source:** <conversation, spec path, or issue reference>
+**Source:** <conversation, spec path, or Issue reference>
 **Goal:** <one externally observable outcome>
 **Execution:** not-started
 **Last updated:** <timestamp>

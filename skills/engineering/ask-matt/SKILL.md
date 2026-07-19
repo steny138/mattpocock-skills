@@ -39,7 +39,7 @@ The limit on this is the **[smart zone](https://www.aihero.dev/ai-coding-diction
 
 A starting situation that generates work, then merges onto the main flow.
 
-- **Bugs and requests piling up** → **`/triage`**. It moves issues through triage roles and produces agent-ready issues. Pick a frontier issue, run `/to-plan`, then hand the approved plan to `/implement`.
+- **Bugs and requests piling up** → **`/triage`**. It moves Issues through triage roles and produces agent-ready Issues. Pick a frontier Issue, run `/to-plan`, then hand the approved plan to `/implement`.
 
   Triage is only for issues **you didn't create** — bug reports, incoming feature requests, anything that arrives raw. Tickets that `/to-tickets` produced are already agent-ready, so **don't triage them**.
 
@@ -47,7 +47,7 @@ A starting situation that generates work, then merges onto the main flow.
 
 - **A huge, foggy effort — a greenfield project or a huge feature build, too big for one session** → **`/wayfinder`**, the most cognitively demanding flow here. When the way from here to the destination isn't visible yet, it charts a **shared map** of **decision tickets** on the issue tracker and resolves them one at a time — producing **decisions, not deliverables** — until the fog is pushed back and the way is clear. Where **`/grill-with-docs`** sharpens an idea you can hold in one session, wayfinder is for the idea you can't — and it's slower and denser, so save it for exactly that, never a well-scoped feature.
 
-  When the map clears, **it hands off, it doesn't build**: merge onto the main flow at **`/to-spec`**, which collapses the map's linked decisions into a buildable spec, then `/to-tickets`, `/to-plan`, and `/implement` as usual. Looping the map straight into `/implement` skips both the collapse and the per-issue plan.
+  When the map clears, **it hands off, it doesn't build**: merge onto the main flow at **`/to-spec`**, which collapses the map's linked decisions into a buildable spec, then `/to-tickets`, `/to-plan`, and `/implement` as usual. Looping the map straight into `/implement` skips both the collapse and the per-Issue plan.
 
 ## Codebase health
 

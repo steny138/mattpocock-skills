@@ -30,7 +30,7 @@ Run it inside the repository or worktree where implementation will happen. The s
 
 The implementation plan is the seam between deciding how to build and executing the build. It pins the workspace, branch, review fixed point, constraints, pre-agreed test seams, exact files, verification commands, independently green tasks, evidence, blockers, and `Resume Here` pointer.
 
-The plan owns **how** one work item will be implemented. A workspace-readable spec or issue continues to own **what** must be delivered. When the source exists only in conversation, `to-plan` captures the agreed contract so a later agent does not need hidden context.
+The plan owns **how** one work item will be implemented. A workspace-readable spec or Issue continues to own **what** must be delivered. When the source exists only in conversation, `to-plan` captures the agreed contract so a later agent does not need hidden context.
 
 ## It's working if
 
