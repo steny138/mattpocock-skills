@@ -1,15 +1,15 @@
 {
-  "name": "mattpocock",
+  "name": "steny138",
   "owner": {
-    "name": "Matt Pocock",
-    "url": "https://www.aihero.dev"
+    "name": "steny138",
+    "url": "https://github.com/steny138"
   },
-  "description": "Matt Pocock's skills for real engineering, as an installable Claude Code plugin.",
+  "description": "An independently maintained fork of Matt Pocock's skills for real engineering.",
   "plugins": [
     {
       "name": "mattpocock-skills",
       "source": "./",
-      "description": "Matt Pocock's agent skills for real engineering — grilling, spec/ticket flows, TDD, code review, domain modelling and more.",
+      "description": "Matt Pocock's agent skills with spec-first, resumable implementation planning maintained by steny138.",
       "category": "engineering",
       "keywords": [
         "engineering",
