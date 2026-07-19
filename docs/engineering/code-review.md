@@ -41,7 +41,7 @@ They run as parallel sub-agents so neither pollutes the other's context, and the
 `code-review` is the review step at the tail of the main build chain:
 
 ```txt
-grill-with-docs → to-spec → to-tickets → implement → code-review
+grill-with-docs → to-spec → to-tickets → to-plan → implement → code-review
 ```
 
-Its closest neighbour is [implement](https://aihero.dev/skills-implement), which drives the build and calls this as its own review pass before committing; upstream, the spec it checks against is produced by [to-spec](https://aihero.dev/skills-to-spec) and [to-tickets](https://aihero.dev/skills-to-tickets). When you're unsure which skill or flow fits, [ask-matt](https://aihero.dev/skills-ask-matt) routes you.
+Its closest neighbour is [implement](https://aihero.dev/skills-implement), which drives the build and calls this as its completion gate; upstream, the feature spec comes from [to-spec](https://aihero.dev/skills-to-spec), the selected Issue comes from [to-tickets](https://aihero.dev/skills-to-tickets), and its implementation detail comes from [to-plan](https://aihero.dev/skills-to-plan). When you're unsure which skill or flow fits, [ask-matt](https://aihero.dev/skills-ask-matt) routes you.

@@ -12,28 +12,36 @@ npx skills update implement
 
 ## What it does
 
-`implement` builds the work described in a spec or a set of tickets — driving it through test-driven development, typechecking, and the full test suite, then handing off to review and committing to the current branch.
+`implement` executes one approved local implementation plan task by task. It drives each behavior change through test-driven development, commits independently green tasks, and leaves progress evidence another agent in the same workspace can resume.
 
-It does **not** decide what to build. The spec is already settled and the seams are already agreed; `implement` executes that plan rather than reopening it. It is the hands, not the head — the thinking happened upstream.
+It does not decide what to build or silently redesign a stale plan. Material deviations and every unresolved review finding stop execution and return the decision to you.
 
 ## When to reach for it
 
 You invoke this by typing `/implement` — the agent won't reach for it on its own.
 
-Reach for it once the work is written down as a spec or split into tickets and you're ready to turn that into code. If the spec doesn't exist yet, write it first — for that, use [to-spec](https://aihero.dev/skills-to-spec), or [to-tickets](https://aihero.dev/skills-to-tickets) to break a spec into tickets. If you just want to build something test-first without a full spec, drop to [tdd](https://aihero.dev/skills-tdd) directly.
+Reach for it after [to-plan](https://aihero.dev/skills-to-plan) has written an approved plan for one work item. If you only have a feature-level spec, use [to-tickets](https://aihero.dev/skills-to-tickets) to produce tracer-bullet Issues, then plan the selected frontier Issue before implementation.
 
-## Pre-agreed seams
+## The resumable plan
 
-The idea `implement` runs on is the **seam** — the stable interface a feature is tested at, chosen before any code is written. It doesn't invent seams mid-build; it uses the ones already picked (during [to-spec](https://aihero.dev/skills-to-spec)) and writes tests against them via [tdd](https://aihero.dev/skills-tdd). Working at pre-agreed seams is what keeps the implementation honest: the tests target something durable, so the code underneath can move without the tests moving.
+The local plan document is the seam between planning and execution. It records the review fixed point, tasks, test seams, evidence, commits, deviations, blockers, final verification, and the next concrete action under `Resume Here`.
 
-Around that core it keeps the loop tight — typecheck often, run single test files as it goes, run the whole suite once at the end — then closes out with a review pass and a commit to the current branch.
+`implement` protects that seam while it works. It refuses pre-staged changes, stages only the current green task, never commits the locally ignored plan, and checkpoints an interruption before yielding. Non-material deviations continue only after their equivalence is verified and recorded; changes to scope, behavior, architecture responsibility, or test seams stop for approval.
+
+## It's working if
+
+- Every behavior change enters red first.
+- Every completed task has evidence and a commit.
+- Another agent can resume at `Resume Here`.
+- Review findings block completion.
+- `.scratch` never enters Git.
 
 ## Where it fits
 
-`implement` is the build step near the end of the main chain, just before the review:
+`implement` is the execution step near the end of the main chain:
 
 ```txt
-grill-with-docs → to-spec → to-tickets → implement → code-review
+grill-with-docs → to-spec → to-tickets → to-plan → implement → code-review
 ```
 
-Reach for it after the work has been specced and sequenced, not before. Its key neighbours are [to-tickets](https://aihero.dev/skills-to-tickets), which produces the tickets — each declaring its blocking edges — that it works through, and [tdd](https://aihero.dev/skills-tdd), which it drives internally to write the tests at each seam before running its own [code-review](https://aihero.dev/skills-code-review) pass and committing. When you're unsure which skill or flow fits, [ask-matt](https://aihero.dev/skills-ask-matt) routes you.
+Its upstream neighbour is [to-plan](https://aihero.dev/skills-to-plan), which owns implementation detail for one frontier Issue. Its internal disciplines are [tdd](https://aihero.dev/skills-tdd), which supplies the red-green loop at pre-agreed seams, and [code-review](https://aihero.dev/skills-code-review), which gates completion against the plan's fixed point. When you're unsure which skill or flow fits, [ask-matt](https://aihero.dev/skills-ask-matt) routes you.
