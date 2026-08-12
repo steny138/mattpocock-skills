@@ -1,6 +1,6 @@
 # Issue tracker: Local Markdown
 
-Issues and specs for this repo live as markdown files in `.scratch/`.
+Issues for tracker-dependent skills live as markdown files in `.scratch/`. Specs and implementation plans also use fixed paths beneath `.scratch/`, independently of the tracker convention.
 
 ## Conventions
 
@@ -10,7 +10,7 @@ Issues and specs for this repo live as markdown files in `.scratch/`.
 - Triage state is recorded as a `Status:` line near the top of each issue file (see `triage-labels.md` for the role strings)
 - Comments and conversation history append to the bottom of the file under a `## Comments` heading
 
-## When a skill says "publish to the issue tracker"
+## When a tracker-dependent skill says "publish to the issue tracker"
 
 Create a new file under `.scratch/<feature-slug>/` (creating the directory if needed).
 

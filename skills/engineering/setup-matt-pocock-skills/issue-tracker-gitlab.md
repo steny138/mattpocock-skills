@@ -1,6 +1,6 @@
 # Issue tracker: GitLab
 
-Issues and specs for this repo live as GitLab issues. Use the [`glab`](https://gitlab.com/gitlab-org/cli) CLI for all operations.
+Issues for tracker-dependent skills live as GitLab issues. Use the [`glab`](https://gitlab.com/gitlab-org/cli) CLI for those operations. Specs and implementation plans remain local beneath `.scratch/`.
 
 ## Conventions
 

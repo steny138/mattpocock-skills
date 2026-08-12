@@ -10,8 +10,8 @@ Reachable only when you type them (Claude Code: `disable-model-invocation: true`
 - **[grill-with-docs](./grill-with-docs/SKILL.md)** — Grilling session that also builds your project's domain model, sharpening terminology and updating `CONTEXT.md` and ADRs inline.
 - **[triage](./triage/SKILL.md)** — Move issues through a state machine of triage roles.
 - **[improve-codebase-architecture](./improve-codebase-architecture/SKILL.md)** — Scan a codebase for deepening opportunities, present them as a visual HTML report, then grill through whichever one you pick.
-- **[setup-matt-pocock-skills](./setup-matt-pocock-skills/SKILL.md)** — Configure this repo for the engineering skills (issue tracker, triage labels, domain doc layout). Run once per repo.
-- **[to-spec](./to-spec/SKILL.md)** — Turn the current conversation into a spec and publish it to the issue tracker.
+- **[setup-matt-pocock-skills](./setup-matt-pocock-skills/SKILL.md)** — Configure this repo's issue tracker, triage labels, and domain doc layout for tracker-dependent engineering skills.
+- **[to-spec](./to-spec/SKILL.md)** — Turn the current conversation into a local `.scratch/<feature>/spec.md` with test-seam confirmation and no issue publication.
 - **[to-tickets](./to-tickets/SKILL.md)** — Break any plan, spec, or conversation into a set of tracer-bullet tickets, each declaring its blocking edges — text in a local file, or native blocking links on a real tracker.
 - **[to-plan](./to-plan/SKILL.md)** — Create a disposable, resumable implementation plan for one selected work item, then stop before implementation.
 - **[implement](./implement/SKILL.md)** — Execute an approved local implementation plan task by task while keeping progress resumable for another agent.

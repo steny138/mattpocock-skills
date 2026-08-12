@@ -6,9 +6,9 @@ disable-model-invocation: true
 
 # To Plan
 
-Turn a conversation, spec, Issue, or other single work item into an implementation plan. The plan owns **how** the work will be done; a workspace-readable source normally owns **what** must be delivered.
+Turn a conversation, local spec, issue, or other single work item into an implementation plan. The plan owns **how** the work will be done; a workspace-readable source normally owns **what** must be delivered.
 
-The plan is a local coordination artifact for agents sharing one workspace. Write it, present it, and stop. Never implement from the same invocation.
+The plan is a local coordination artifact for agents sharing one workspace. Write it, present it, and stop. Never publish it to an issue tracker or implement from the same invocation.
 
 ## Process
 
@@ -47,6 +47,7 @@ git rev-parse --git-path info/exclude
 ```
 
 Ensure it contains `/.scratch/`, then verify the rule with `git check-ignore`. Do not add `.scratch/` to the version-controlled `.gitignore`.
+Never stage or commit the plan.
 
 ### 4. Write the plan
 
@@ -55,7 +56,7 @@ Use this structure:
 ```markdown
 # <Work Item> Implementation Plan
 
-**Source:** <conversation, spec path, or Issue reference>
+**Source:** <conversation, local spec path, or issue reference>
 **Goal:** <one externally observable outcome>
 **Execution:** not-started
 **Last updated:** <timestamp>
@@ -122,4 +123,4 @@ Do not repeat requirements from a workspace-readable source. Point to it and inc
 
 ### 5. Stop at the boundary
 
-Show the user the plan path, task list, test seams, and any remaining risks. Ask for confirmation. Do not edit product code, stage files, commit, push, or invoke `/implement` in this invocation.
+Show the user the plan path, task list, test seams, and any remaining risks. Ask for confirmation. Do not publish the plan to an issue tracker, edit product code, stage files, commit, push, or invoke `/implement` in this invocation.

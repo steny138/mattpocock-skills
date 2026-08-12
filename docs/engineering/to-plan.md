@@ -1,8 +1,10 @@
 ## What it does
 
-`to-plan` turns one selected work item into a disposable local implementation plan that another agent in the same workspace can execute and resume.
+`to-plan` turns one selected work item into a disposable local implementation plan at `.scratch/<feature>/plans/<work-item>-plan.md` that another agent in the same workspace can execute and resume.
 
 It plans exactly one work item and stops before implementation. It does not replace the feature-level spec or split work across tickets; [to-spec](https://aihero.dev/skills-to-spec) and [to-tickets](https://aihero.dev/skills-to-tickets) retain those responsibilities.
+
+It never publishes the plan to GitHub or another issue tracker. An issue may be an input source, but the plan output is always local.
 
 ## When to reach for it
 

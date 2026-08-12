@@ -1,12 +1,10 @@
 ---
 name: to-spec
-description: Turn the current conversation into a spec and publish it to the project issue tracker — no interview, just synthesis of what you've already discussed.
+description: Turn the current conversation into a local spec — synthesize what is already known, with only test-seam confirmation before writing.
 disable-model-invocation: true
 ---
 
-This skill takes the current conversation context and codebase understanding and produces a spec. Do NOT interview the user — just synthesize what you already know.
-
-The issue tracker and triage label vocabulary should have been provided to you — run `/setup-matt-pocock-skills` if not.
+This skill takes the current conversation context and codebase understanding and produces a spec. Do not reopen requirements discovery or interview the user for new product decisions. Synthesize what you already know; the only required user exchange is confirmation of the proposed test seams before writing.
 
 ## Process
 
@@ -16,7 +14,21 @@ The issue tracker and triage label vocabulary should have been provided to you �
 
 Check with the user that these seams match their expectations.
 
-3. Write the spec using the template below, then publish it to the project issue tracker. Apply the `ready-for-agent` triage label - no need for additional triage.
+3. Write the spec using the template below at:
+
+```text
+.scratch/<feature>/spec.md
+```
+
+If no unambiguous feature slug is available, ask the user instead of inventing one. The destination is fixed: do not publish the spec to GitHub, GitLab, Linear, or any other issue tracker, even when the repository has one configured.
+
+Resolve the repository-local exclude file with:
+
+```bash
+git rev-parse --git-path info/exclude
+```
+
+Ensure it contains `/.scratch/`, then verify the spec is ignored with `git check-ignore`. Do not add `.scratch/` to the version-controlled `.gitignore`, and never stage or commit the spec.
 
 <spec-template>
 
@@ -73,3 +85,5 @@ A description of the things that are out of scope for this spec.
 Any further notes about the feature.
 
 </spec-template>
+
+4. Show the user the spec path and the confirmed test seams. Do not create, edit, label, or comment on an issue as part of this skill.

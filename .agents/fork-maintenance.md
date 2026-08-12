@@ -81,7 +81,27 @@ Required supporting surfaces:
 - `docs/engineering/implement.md`
 - every promoted docs page that describes the main build flow
 
-### 2. Plans are disposable workspace coordination artifacts
+### 2. Specs and plans are fixed local artifacts
+
+Unlike upstream, this fork never publishes `to-spec` or `to-plan` output to an
+issue tracker. Their destinations are fixed:
+
+```text
+.scratch/<feature>/spec.md
+.scratch/<feature>/plans/<work-item>-plan.md
+```
+
+This remains true when the repository configures GitHub, GitLab, Linear, or
+another issue tracker for `to-tickets`, `triage`, or `wayfinder`. Those systems
+may still be read as an input when the user supplies a reference, but neither
+skill creates, edits, labels, or comments on an issue.
+
+Decision reason: specs and plans are working artifacts for agents sharing one
+workspace. Fixed relative paths make them directly addressable across sessions,
+avoid external side effects and tracker truncation, and keep their lifecycle
+independent from the repository's issue-management policy.
+
+### 3. Plans are disposable workspace coordination artifacts
 
 `to-plan` writes one plan beneath:
 
@@ -107,7 +127,7 @@ durable product artifact. Keeping it local avoids preserving obsolete file paths
 and task mechanics in Git while retaining enough state for interruption and
 agent handoff.
 
-### 3. `implement` is an approved-plan executor
+### 4. `implement` is an approved-plan executor
 
 This fork's `implement` must not accept a bare ticket, spec, or conversation as
 authorization to design and build. It requires the user to identify an approved
@@ -141,7 +161,7 @@ continue autonomously inside the approved boundary. Task commits also ensure
 that the final three-dot review can see the implementation, avoiding the
 upstream ordering problem where uncommitted work was invisible to review.
 
-### 4. The fork is a distinct distribution
+### 5. The fork is a distinct distribution
 
 The plugin name remains `mattpocock-skills` to preserve its upstream origin, but
 the distribution is explicitly maintained by `steny138`:
@@ -251,6 +271,7 @@ Search for semantic regressions, not only conflict markers:
 ```bash
 rg -n '^(<<<<<<<|=======|>>>>>>>)' .
 rg -n 'to-tickets.*implement|tickets.*implement|spec.*implement' README.md CLAUDE.md .agents docs skills
+rg -n 'to-spec.*issue tracker|publish.*spec|ready-for-agent' README.md CLAUDE.md .agents docs skills
 rg -n 'mattpocock/skills|official marketplace|claude plugins install mattpocock-skills' README.md CLAUDE.md .agents .claude-plugin package.json skills
 ```
 
@@ -273,6 +294,8 @@ Also confirm manually that:
   `agents/openai.yaml`;
 - `ask-matt` routes every user-reachable build path through `to-plan` before
   `implement`;
+- `to-spec` and `to-plan` write only to their fixed `.scratch/` paths and never
+  publish to an issue tracker;
 - README and `.agents/install-block.md` use the fork's installation commands;
 - this document's baseline, conflict surface, divergence register, and decision
   history reflect the integration just completed.
@@ -298,3 +321,12 @@ upstream's 1.2.3 release, skill promotions and retirements, docs rewrite, router
 improvements, and release tooling. It retained the fork distribution identity
 and adapted the new upstream docs and routing surfaces to preserve the mandatory
 `to-plan → implement` boundary.
+
+### 2026-08-12 — Keep specs and plans local-only
+
+`to-spec` was changed from publishing a `ready-for-agent` issue to writing
+`.scratch/<feature>/spec.md`. `to-plan` retained its fixed
+`.scratch/<feature>/plans/<work-item>-plan.md` destination and gained an explicit
+no-publication invariant. Issue tracker configuration remains available to
+`to-tickets`, `triage`, and `wayfinder`, but no longer controls spec or plan
+output.

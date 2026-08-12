@@ -65,7 +65,7 @@ Discovery surfaces only *external* PRs, because a collaborator's in-flight branc
 ## Common questions
 
 **I ran `/to-spec` and `/to-tickets`, and now those tickets are sitting there untriaged. Do I run `/triage` over them?**
-No. They are already agent-ready — `to-tickets` applies the `ready-for-agent` label as it publishes, precisely so an AFK runner picks them up without another pass. The user who hit this had run the spec flow, seen `needs-triage` on the output, and found their AFK runner ignoring everything. `triage` is the on-ramp for work that arrives from outside; the spec flow is the lane for work you originate. They meet at `ready-for-agent`, not before.
+No. They are already agent-ready — `to-tickets` applies the `ready-for-agent` label as it publishes, precisely so an AFK runner picks them up without another pass. The local spec itself has no tracker label. The user who hit this had run the spec-to-tickets flow, seen `needs-triage` on the published ticket output, and found their AFK runner ignoring everything. `triage` is the on-ramp for work that arrives from outside; the spec-to-tickets flow is the lane for work you originate. They meet at the tickets' `ready-for-agent` state, not before.
 
 **Is `triage` still relevant now that there's a `to-spec` → `to-tickets` → `to-plan` → `implement` flow?**
 Only if you have inbound work. `triage` predates that spine and does a different job: it is the lane for reports other people filed. If everything in your tracker came out of your own planning, you will rarely open it. If you maintain anything public, or your team files bugs at you, it is the front door. The main use is open-source repos taking issues from external contributors.

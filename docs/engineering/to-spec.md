@@ -1,8 +1,8 @@
 ## What it does
 
-`to-spec` turns the conversation you have just had into a **[spec](https://www.aihero.dev/ai-coding-dictionary/spec)**, and publishes it to your issue tracker as a single issue.
+`to-spec` turns the conversation you have just had into a local **[spec](https://www.aihero.dev/ai-coding-dictionary/spec)** at `.scratch/<feature>/spec.md`.
 
-It does not interview you. By the time you reach for it the deciding is already done, so it synthesises what is known — from the thread, from the codebase, from your `CONTEXT.md` and ADRs — rather than opening a fresh round of questions. The spec is a record of decisions already made, not a place where new ones get made.
+It does not reopen requirements discovery or publish anything to an issue tracker. By the time you reach for it the deciding is already done, so it synthesises what is known — from the thread, from the codebase, from your `CONTEXT.md` and ADRs — rather than opening a fresh round of product questions. The only required exchange is confirmation of the proposed test seams before writing. The spec is a record of decisions already made, not a place where new ones get made.
 
 ## When to reach for it
 
@@ -19,7 +19,7 @@ Reach for it when the build is too big for one agent [session](https://www.aiher
 
 ## Prerequisites
 
-`to-spec` publishes the spec as an issue, so [setup-matt-pocock-skills](https://aihero.dev/skills-setup-matt-pocock-skills) must have configured a tracker and the triage-label vocabulary for this repo first. Either kind works: a real tracker like GitHub, or local markdown files under `.scratch/`, which is supported out of the box.
+Run it inside the repository or worktree where later planning and implementation will happen. The skill ensures `.scratch/` is excluded through the repository-local `.git/info/exclude`; the spec remains available to agents sharing that workspace without entering version control.
 
 ## The spec is a decision record
 
@@ -38,8 +38,8 @@ Those agreed seams then travel. [tdd](https://aihero.dev/skills-tdd) works only 
 **Where did `/to-prd` go?**
 It is this skill, renamed in v1.1. "Spec" is now the single through-line term, and the old `to-prd` slug is dead — reinstall under the new name. The pair that replaced the old vocabulary is *spec* and *tickets*: the spec is the destination and the decisions that fix it, the [tickets](https://www.aihero.dev/ai-coding-dictionary/ticket) are the execution steps that get there. If you pivot, delete the unfinished tickets and keep the spec.
 
-**Why does the spec get the `ready-for-agent` label? I don't want an agent implementing off it.**
-The label means "no further triage needed" — the document is complete enough for an agent to work from. It is an input designation, not a work order. But if you run [AFK](https://www.aihero.dev/ai-coding-dictionary/afk) agents that poll for `ready-for-agent`, that distinction isn't visible to them, and they will happily try to build the whole spec in one run instead of picking up the ticket slices. This is the most-reported rough edge on the skill. Until it changes, exclude the parent spec explicitly in your AFK agent's prompt, or strip the label once `/to-tickets` has run.
+**Will it create or update a GitHub issue?**
+No. The destination is fixed at `.scratch/<feature>/spec.md`, even when the repository uses GitHub, GitLab, Linear, or another issue tracker. The skill does not apply labels or make any external write.
 
 **Why not go straight from grilling to `/to-tickets` and skip the spec?**
 Often you should — the spec earns its step only on multi-session work. Where it pays is that the tickets are disposable and the spec isn't: each ticket is sized for one fresh context window and gets deleted or closed, while the spec stays as the one place the reasoning behind them lives. On a single-session change that buys you nothing, and you have paid an extra synthesis step where the [model](https://www.aihero.dev/ai-coding-dictionary/model) can drift. Go grilling → `/to-plan` → `/implement`.
@@ -57,14 +57,16 @@ Nothing keeps it in sync, so in practice it is a snapshot of what you knew at th
 Less well, and this is a known limitation. The template leans hard on user stories, which is the wrong shape for architectural work — you end up writing stories nobody asked for around decisions that are really about interfaces and invariants. Lean on the implementation-decisions and testing-decisions sections instead, and let the durable architectural calls land as ADRs via [grill-with-docs](https://aihero.dev/skills-grill-with-docs) rather than trying to make the spec carry them.
 
 **Will it check the tracker for related work, or cite the ADRs it's respecting?**
-No to both. It reads and respects the ADRs covering the area it touches, but it doesn't link them, and it doesn't search the tracker for overlapping issues before drafting — so a spec can quietly duplicate work someone already filed. Search the tracker yourself first if the area is busy.
+No to both. It reads and respects the ADRs covering the area it touches, but it doesn't link them or search an issue tracker before drafting. Search for overlapping work separately if the area is busy.
 
-**`/to-tickets` couldn't read my spec — it kept truncating.**
-Very large specs can outgrow what a tracker issue will serve back cleanly, and there is no local copy to fall back on. The fix is context hygiene: don't [clear](https://www.aihero.dev/ai-coding-dictionary/clearing) or [compact](https://www.aihero.dev/ai-coding-dictionary/compaction) between `/to-spec` and `/to-tickets`. Run them in the same window and the spec never has to be re-fetched at all.
+**How does `/to-tickets` read the spec in a fresh session?**
+Pass `.scratch/<feature>/spec.md` explicitly. The fixed local path avoids tracker truncation and remains readable to another agent in the same workspace.
 
 ## It's working if
 
 - It starts writing rather than asking you a fresh round of questions.
+- The result exists at `.scratch/<feature>/spec.md` and `git check-ignore` confirms it stays outside Git.
+- No issue, label, or external comment is created.
 - It puts the seams to you before it writes, and proposes as few as it can get away with.
 - It comes back in your project's nouns, not generic product-management boilerplate.
 - Every decision in it is one you can remember making. Nothing was invented to fill a section.

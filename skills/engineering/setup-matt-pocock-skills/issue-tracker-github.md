@@ -1,6 +1,6 @@
 # Issue tracker: GitHub
 
-Issues and specs for this repo live as GitHub issues. Use the `gh` CLI for all operations.
+Issues for tracker-dependent skills live as GitHub issues. Use the `gh` CLI for those operations. Specs and implementation plans remain local beneath `.scratch/`.
 
 ## Conventions
 

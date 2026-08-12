@@ -20,7 +20,7 @@ You invoke this by typing `/ask-matt` — the agent won't reach for it on its ow
 
 The router names skills; it does not install them. Everything it points at has to be installed for the recommendation to be actionable, and it only knows the promoted skills in this repo.
 
-The tracker-dependent routes — triage, `to-spec`, and `to-tickets` — assume [setup-matt-pocock-skills](https://aihero.dev/skills-setup-matt-pocock-skills) has already configured an issue tracker in the repo. The router will happily recommend them before that has happened.
+The tracker-dependent routes — triage, `to-tickets`, and wayfinder — assume [setup-matt-pocock-skills](https://aihero.dev/skills-setup-matt-pocock-skills) has already configured an issue tracker in the repo. `to-spec` and `to-plan` are different: they always write beneath `.scratch/` and do not need tracker setup. The router will happily recommend tracker-dependent skills before setup has happened.
 
 ## Flows, not skills
 

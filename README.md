@@ -13,6 +13,7 @@ by Matt Pocock.
 
 Compared with upstream, this fork adds:
 
+- Local-only specs at `.scratch/<feature>/spec.md`, independent of the configured issue tracker.
 - [`/to-plan`](./skills/engineering/to-plan/SKILL.md), which creates one local
   implementation plan per selected work item and stops for approval.
 - A resumable [`/implement`](./skills/engineering/implement/SKILL.md) workflow
@@ -176,7 +177,7 @@ For debugging, **[`/diagnosing-bugs`](./skills/engineering/diagnosing-bugs/SKILL
 
 This is built in to every layer of these skills:
 
-- [`/to-spec`](./skills/engineering/to-spec/SKILL.md) quizzes you about which modules you're touching before creating a spec
+- [`/to-spec`](./skills/engineering/to-spec/SKILL.md) confirms the highest practical test seams before creating a spec
 
 And crucially, [`/improve-codebase-architecture`](./skills/engineering/improve-codebase-architecture/SKILL.md) surveys a codebase for deepening opportunities and hands you the candidates. Run it on your codebase once every few days. It is a survey, not a rescue: on a genuinely old codebase it will find real candidates, but it won't untangle the mud for you.
 
@@ -198,8 +199,8 @@ Skills for daily code work.
 - **[grill-with-docs](./skills/engineering/grill-with-docs/SKILL.md)** — Grilling session that also builds your project's domain model, sharpening terminology and updating `CONTEXT.md` and ADRs inline.
 - **[triage](./skills/engineering/triage/SKILL.md)** — Move issues through a state machine of triage roles.
 - **[improve-codebase-architecture](./skills/engineering/improve-codebase-architecture/SKILL.md)** — Scan a codebase for deepening opportunities, present them as a visual HTML report, then grill through whichever one you pick.
-- **[setup-matt-pocock-skills](./skills/engineering/setup-matt-pocock-skills/SKILL.md)** — Configure this repo for the engineering skills (issue tracker, triage labels, domain doc layout). Run once per repo before using the other engineering skills.
-- **[to-spec](./skills/engineering/to-spec/SKILL.md)** — Turn the current conversation into a spec and publish it to the issue tracker. No interview — just synthesizes what you've already discussed.
+- **[setup-matt-pocock-skills](./skills/engineering/setup-matt-pocock-skills/SKILL.md)** — Configure this repo's issue tracker, triage labels, and domain doc layout for tracker-dependent engineering skills.
+- **[to-spec](./skills/engineering/to-spec/SKILL.md)** — Turn the current conversation into a local `.scratch/<feature>/spec.md`. No new requirements interview or issue publication — just synthesis plus test-seam confirmation.
 - **[to-tickets](./skills/engineering/to-tickets/SKILL.md)** — Break any plan, spec, or conversation into a set of tracer-bullet tickets, each declaring its blocking edges — written as text in a local file, or as native blocking links on a real tracker.
 - **[to-plan](./skills/engineering/to-plan/SKILL.md)** — Create a disposable, resumable implementation plan for one selected work item, then stop before implementation.
 - **[implement](./skills/engineering/implement/SKILL.md)** — Execute an approved local implementation plan task by task while keeping progress resumable for another agent.
