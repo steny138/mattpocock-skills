@@ -219,9 +219,10 @@ branch, merger subagents) but makes it an executor of approved plans only:
 - Before dispatch, the plan's workspace, branch, and review fixed point are
   rebound to the implementer's worktree and the rebinding is recorded under
   `## Deviations`.
-- Each implementer follows `implement`'s rules: per-task commits with recorded
-  evidence and SHA, material-deviation stops, `Resume Here`, and a per-plan
-  `code-review` against its fixed point.
+- Each implementer follows `implement`'s rules (per-task commits with recorded
+  evidence and SHA, material-deviation stops, `Resume Here`) except review: it
+  skips the per-plan `code-review` and defers it to the single
+  integration-branch review, whose outcome is then recorded in every plan.
 - The orchestrator keeps a run record at `.scratch/<feature>/implement-spec.md`
   with a `Resume Here`, so the whole run is resumable.
 - Any final integration-branch review finding stops for user approval.

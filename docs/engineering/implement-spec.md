@@ -2,7 +2,7 @@
 
 `implement-spec` takes a local [spec](https://www.aihero.dev/ai-coding-dictionary/spec), its [tickets](https://www.aihero.dev/ai-coding-dictionary/ticket), and one approved [to-plan](https://aihero.dev/skills-to-plan) plan per ticket, and executes every plan in one run. The orchestrating [agent](https://www.aihero.dev/ai-coding-dictionary/agent) hands each plan to an implementer [subagent](https://www.aihero.dev/ai-coding-dictionary/subagent) working in its own git worktree, merges each finished branch into a single **integration branch**, and runs [code-review](https://aihero.dev/skills-code-review) over the result.
 
-It never plans. Every ticket needs an approved plan before the run starts, and each implementer executes its plan under the same rules as [implement](https://aihero.dev/skills-implement): one committed task at a time, evidence recorded in the plan, and a stop for you on any material deviation or review finding.
+It never plans. Every ticket needs an approved plan before the run starts, and each implementer executes its plan under the same rules as [implement](https://aihero.dev/skills-implement): one committed task at a time, evidence recorded in the plan, and a stop for you on any material deviation. The one difference is review: implementers skip the per-plan `code-review`, and the run reviews the integration branch once at the end.
 
 It reads the tickets as a **task graph**, not a list. Blocking edges decide what can start, so at any moment there is a **frontier** of tickets whose blockers have all landed, and every ticket on the frontier runs at once. That is the difference from working the plans one by one.
 
@@ -33,10 +33,10 @@ Each implementer then:
 
 1. confirms its worktree, branch, fixed point, and empty index match the plan,
 2. executes the plan task by task with [tdd](https://aihero.dev/skills-tdd) at the plan's seams, committing each green task and recording its SHA,
-3. runs `code-review` against its plan's fixed point,
+3. records its final verification, leaving the review to the end of the run,
 4. merges the integration branch tip into its own branch before reporting done, so landing it is a fast-forward.
 
-The orchestrator keeps a run record at `.scratch/<feature>/implement-spec.md` with the integration branch, each ticket's worktree and status, and a `Resume Here`, so an interrupted run can be picked up again. When everything has merged, it runs one `code-review` over the integration branch. The run ends there: it does not push, open a pull request, or close tickets.
+The orchestrator keeps a run record at `.scratch/<feature>/implement-spec.md` with the integration branch, each ticket's worktree and status, and a `Resume Here`, so an interrupted run can be picked up again. When everything has merged, it runs one `code-review` over the integration branch and records the outcome in every plan. The run ends there: it does not push, open a pull request, or close tickets.
 
 ## Common questions
 
@@ -85,4 +85,4 @@ A worktree holds only what git tracks. Tests that read gitignored fixtures, loca
 grill-with-docs → to-spec → to-tickets → to-plan (every ticket) → implement-spec → retro
 ```
 
-Its neighbours are [to-plan](https://aihero.dev/skills-to-plan), which writes the plans it executes; [to-tickets](https://aihero.dev/skills-to-tickets), which declares the blocking edges it reads as a task graph; and [code-review](https://aihero.dev/skills-code-review), which gates each plan and the integration branch. [ask-matt](https://aihero.dev/skills-ask-matt) is the router over the whole set when you are not sure which flow you are in.
+Its neighbours are [to-plan](https://aihero.dev/skills-to-plan), which writes the plans it executes; [to-tickets](https://aihero.dev/skills-to-tickets), which declares the blocking edges it reads as a task graph; and [code-review](https://aihero.dev/skills-code-review), which gates the integration branch. [ask-matt](https://aihero.dev/skills-ask-matt) is the router over the whole set when you are not sure which flow you are in.
