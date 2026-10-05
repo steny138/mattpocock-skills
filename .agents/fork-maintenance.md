@@ -21,10 +21,10 @@ upstream improvements.
 The baseline below is a snapshot, not a permanent constant. Refresh it after
 every upstream integration.
 
-- Upstream integrated through: `84fdeffd12f2ee307994d1eb6feb48173b6e0502`
-- Fork integration commit: `222d28471d4206b5a1a1379122493a44f300bdba`
-- Integration date: 2026-08-12
-- Upstream package version absorbed: `1.2.3`
+- Upstream integrated through: `4588b32ecab9ecc9fc8cc6b6c5e7d675b6004b0d`
+- Fork integration commit: the merge commit on `chore/merge-upstream-1.3.1`
+- Integration date: 2026-10-05
+- Upstream package version absorbed: `1.3.1`
 
 Verify the current relationship instead of trusting this snapshot:
 
@@ -44,7 +44,7 @@ Upstream's build flow goes from a spec or ticket into `implement`. This fork
 inserts a mandatory, user-reviewed planning boundary:
 
 ```text
-grill-with-docs → to-spec → to-tickets → to-plan → implement → code-review
+grill-with-docs → to-spec → to-tickets → to-plan → implement → code-review → retro
 ```
 
 For work small enough to skip a feature spec and ticket decomposition, the
@@ -70,6 +70,7 @@ Primary implementation:
 - `skills/engineering/to-plan/SKILL.md`
 - `skills/engineering/implement/SKILL.md`
 - `skills/engineering/to-tickets/SKILL.md`
+- `skills/engineering/implement-spec/SKILL.md`
 - `skills/engineering/ask-matt/SKILL.md`
 
 Required supporting surfaces:
@@ -79,6 +80,7 @@ Required supporting surfaces:
 - `skills/engineering/README.md`
 - `docs/engineering/to-plan.md`
 - `docs/engineering/implement.md`
+- `docs/engineering/implement-spec.md`
 - every promoted docs page that describes the main build flow
 
 ### 2. Specs and plans are fixed local artifacts
@@ -200,6 +202,40 @@ Canonical sources:
 - `package.json`
 - `README.md`
 
+### 6. `implement-spec` is a parallel approved-plan executor
+
+Upstream's `implement-spec` builds a whole spec from its tickets, has each
+implementer subagent drive `tdd` straight from a ticket, auto-fixes every final
+review finding, and may open a draft PR and close tickets. This fork keeps the
+task-graph orchestration (frontier, per-ticket worktrees, one integration
+branch, merger subagents) but makes it an executor of approved plans only:
+
+- Every ticket must have an approved, not-started `to-plan` plan before the run
+  starts; a missing or unapproved plan is a hard stop.
+- Plans stay in the main worktree's `.scratch/`. Each implementer receives the
+  absolute path to exactly one plan, because untracked `.scratch/` is absent
+  from new worktrees. `implement` accordingly accepts plans under the main
+  worktree's `.scratch/`, not only the current worktree's.
+- Before dispatch, the plan's workspace, branch, and review fixed point are
+  rebound to the implementer's worktree and the rebinding is recorded under
+  `## Deviations`.
+- Each implementer follows `implement`'s rules: per-task commits with recorded
+  evidence and SHA, material-deviation stops, `Resume Here`, and a per-plan
+  `code-review` against its fixed point.
+- The orchestrator keeps a run record at `.scratch/<feature>/implement-spec.md`
+  with a `Resume Here`, so the whole run is resumable.
+- Any final integration-branch review finding stops for user approval.
+- Completion does not push, open a pull request, or close tickets.
+
+Decision reason: parallel execution is useful, but a mode that designs work
+from bare tickets and closes the loop autonomously would bypass divergences 1,
+2, and 4. Requiring every plan up front avoids idle subagents waiting on
+planning decisions; implementer re-validation catches plans that went stale
+while their blockers landed.
+
+`to-plan` correspondingly allows planning any selected ticket, not only a
+frontier ticket, so every plan can be approved before `implement-spec` runs.
+
 ## What may follow upstream
 
 Upstream remains authoritative for all behaviour this contract does not
@@ -220,18 +256,42 @@ in this document.
 
 ## Known conflict surface
 
-The 2026-08-12 integration produced textual conflicts in these files:
+The 2026-10-05 integration produced textual conflicts in these files:
 
+- `.agents/adr/0001-explicit-setup-pointer-only-for-hard-dependencies.md`
+- `.agents/adr/0002-ship-as-a-claude-code-plugin.md`
+- `.agents/install-block.md`
+- `.agents/writing-docs.md`
+- `.claude-plugin/marketplace.json`
 - `.claude-plugin/plugin.json`
+- `CLAUDE.md`
+- `GLOSSARY.md` (renamed upstream from `CONTEXT.md`)
 - `README.md`
 - `docs/engineering/ask-matt.md`
 - `docs/engineering/code-review.md`
+- `docs/engineering/grill-with-docs.md`
 - `docs/engineering/implement.md`
+- `docs/engineering/improve-codebase-architecture.md`
+- `docs/engineering/prototype.md`
+- `docs/engineering/setup-matt-pocock-skills.md`
 - `docs/engineering/tdd.md`
 - `docs/engineering/to-spec.md`
 - `docs/engineering/to-tickets.md`
+- `docs/engineering/triage.md`
+- `docs/engineering/wayfinder.md`
+- `skills/engineering/README.md`
 - `skills/engineering/ask-matt/SKILL.md`
+- `skills/engineering/setup-matt-pocock-skills/SKILL.md`
+- `skills/engineering/to-spec/SKILL.md`
 - `skills/engineering/to-tickets/SKILL.md`
+
+Upstream-added files that carry fork divergences without conflicting are
+`skills/engineering/implement-spec/SKILL.md` and
+`docs/engineering/implement-spec.md`; an upstream edit to either applies
+cleanly and can silently reintroduce ticket-driven building. Diff them against
+upstream on every integration. Git also auto-merged a duplicated paragraph in
+`docs/engineering/to-tickets.md` after upstream reordered its questions, so
+scan resolved docs for duplicated lines.
 
 Textual conflicts are not the full risk. Upstream may automatically merge a
 sentence that still routes directly from a spec or ticket to `implement`, or may
@@ -302,19 +362,19 @@ Also confirm manually that:
 
 ## Decision history
 
-### 2026-07-17 — Add resumable per-work-item planning
+### 2026-07-17: Add resumable per-work-item planning
 
 Fork PR #1 introduced `to-plan` and deepened `implement` into a resumable plan
 executor. The originating commits are `37c1d10`, `6e08be5`, and `2ab6905`, with
 terminology follow-ups `64359cb` and `399813c`.
 
-### 2026-07-19 — Make fork identity explicit
+### 2026-07-19: Make fork identity explicit
 
 Fork PR #2 kept the `mattpocock-skills` plugin name while changing maintainer,
 repository, marketplace, install commands, and user-facing description to the
 `steny138` distribution. The originating commit is `c0f52cb`.
 
-### 2026-08-12 — Integrate upstream through 1.2.3
+### 2026-08-12: Integrate upstream through 1.2.3
 
 Merge commit `222d284` integrated upstream `84fdeff`. The integration accepted
 upstream's 1.2.3 release, skill promotions and retirements, docs rewrite, router
@@ -322,7 +382,7 @@ improvements, and release tooling. It retained the fork distribution identity
 and adapted the new upstream docs and routing surfaces to preserve the mandatory
 `to-plan → implement` boundary.
 
-### 2026-08-12 — Keep specs and plans local-only
+### 2026-08-12: Keep specs and plans local-only
 
 `to-spec` was changed from publishing a `ready-for-agent` issue to writing
 `.scratch/<feature>/spec.md`. `to-plan` retained its fixed
@@ -330,3 +390,16 @@ and adapted the new upstream docs and routing surfaces to preserve the mandatory
 no-publication invariant. Issue tracker configuration remains available to
 `to-tickets`, `triage`, and `wayfinder`, but no longer controls spec or plan
 output.
+
+### 2026-10-05: Integrate upstream through 1.3.1
+
+The integration merged upstream `4588b32`, absorbing the 1.3.0 and 1.3.1
+releases: `implement-spec`, `pr`, and `retro` graduated to engineering,
+`resolving-merge-conflicts` was removed, the `CONTEXT.md` convention was
+renamed to `GLOSSARY.md`, em-dashes were removed repo-wide, and cross-skill
+invocation moved to explicit Skill tool calls. The fork kept its distribution
+identity and local spec and plan destinations, inserted `to-plan` into the new
+`retro`-terminated main flow, and rewrote `implement-spec` as a parallel
+approved-plan executor (divergence 6). The fork's own `implement` and `to-plan`
+adopted the Skill tool phrasing for `tdd` and `code-review`, and their prose
+dropped em-dashes.

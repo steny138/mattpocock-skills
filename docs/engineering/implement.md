@@ -6,7 +6,7 @@ It does not decide what to build or silently redesign a stale plan. Material dev
 
 ## When to reach for it
 
-You invoke this by typing `/implement` — the agent won't reach for it on its own. It ships with `disable-model-invocation: true`, so no other skill can call it either. When [ask-matt](https://aihero.dev/skills-ask-matt) or [to-tickets](https://aihero.dev/skills-to-tickets) routes a ticket toward implementation, you first approve its local plan and then invoke `/implement` explicitly against that plan.
+You invoke this by typing `/implement` yourself, and the agent won't reach for it on its own. It ships with `disable-model-invocation: true`, so no other skill can call it either. When [ask-matt](https://aihero.dev/skills-ask-matt) or [to-tickets](https://aihero.dev/skills-to-tickets) routes a ticket toward implementation, you first approve its local plan and then invoke `/implement` explicitly against that plan.
 
 Reach for it after [to-plan](https://aihero.dev/skills-to-plan) has written an approved plan for one work item. If you only have a feature-level spec, use [to-tickets](https://aihero.dev/skills-to-tickets) to produce tracer-bullet tickets, then plan the selected frontier ticket before implementation.
 Where the work currently lives decides the step before it:
@@ -52,11 +52,11 @@ Yes when the deviation changes scope, externally observable behaviour, a public 
 
 **Can I run several plans in parallel in one checkout?**
 
-No. Each run uses the same working directory, index, and `HEAD`, and commits after every green task. Use isolated worktrees if you intentionally coordinate parallel runs, and keep each plan bound to its own workspace and branch.
+Not with `/implement`: one invocation, one plan. Each run uses the same working directory, index, and `HEAD`, and commits after every green task. For a whole spec at once, approve a plan for every ticket and use [implement-spec](https://aihero.dev/skills-implement-spec), which gives each ready ticket's plan to a [subagent](https://www.aihero.dev/ai-coding-dictionary/subagent) in its own worktree and merges the results onto one integration branch.
 
 **Can it open a pull request or push when it finishes?**
 
-No. The skill explicitly stops after local completion. It does not push, create a pull request, or remove the completed plan unless you ask separately.
+No. The skill explicitly stops after local completion. It does not push, create a pull request, or remove the completed plan unless you ask separately. When you do ask the agent to write the PR, [pr](https://aihero.dev/skills-pr) shapes its body.
 
 **Will `code-review` see the changes?**
 
@@ -79,7 +79,7 @@ No. Completion updates the local plan and commits the implementation; tracker st
 `implement` is the execution step near the end of the main chain:
 
 ```txt
-grill-with-docs → to-spec → to-tickets → to-plan → implement → code-review
+grill-with-docs → to-spec → to-tickets → to-plan → implement → code-review → retro
 ```
 
-Its upstream neighbour is [to-plan](https://aihero.dev/skills-to-plan), which owns implementation detail for one frontier ticket. Its internal disciplines are [tdd](https://aihero.dev/skills-tdd), which supplies the red-green loop at pre-agreed seams, and [code-review](https://aihero.dev/skills-code-review), which gates completion against the plan's fixed point. When you're unsure which skill or flow fits, [ask-matt](https://aihero.dev/skills-ask-matt) routes you.
+Its upstream neighbour is [to-plan](https://aihero.dev/skills-to-plan), which owns implementation detail for one frontier ticket. Its internal disciplines are [tdd](https://aihero.dev/skills-tdd), which supplies the red-green loop at pre-agreed seams, and [code-review](https://aihero.dev/skills-code-review), which gates completion against the plan's fixed point. [implement-spec](https://aihero.dev/skills-implement-spec) is the parallel alternative: it runs every approved plan for a spec at once, each under these same rules. Afterwards, [retro](https://aihero.dev/skills-retro) looks back over the session. When you're unsure which skill or flow fits, [ask-matt](https://aihero.dev/skills-ask-matt) routes you.

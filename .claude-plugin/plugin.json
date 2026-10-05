@@ -1,6 +1,6 @@
 {
   "name": "mattpocock-skills",
-  "version": "1.2.3",
+  "version": "1.3.1",
   "description": "An independently maintained fork of Matt Pocock's agent skills, with spec-first, resumable implementation planning.",
   "author": {
     "name": "steny138",
@@ -31,12 +31,14 @@
     "./skills/engineering/to-plan",
     "./skills/engineering/wayfinder",
     "./skills/engineering/implement",
+    "./skills/engineering/implement-spec",
     "./skills/engineering/prototype",
     "./skills/engineering/research",
     "./skills/engineering/domain-modeling",
     "./skills/engineering/codebase-design",
     "./skills/engineering/code-review",
-    "./skills/engineering/resolving-merge-conflicts",
+    "./skills/engineering/pr",
+    "./skills/engineering/retro",
     "./skills/engineering/wizard",
     "./skills/productivity/grill-me",
     "./skills/productivity/grilling",
