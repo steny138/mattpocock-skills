@@ -23,13 +23,13 @@ Before editing code, confirm:
 - unrelated working-tree changes can be preserved;
 - the index has no pre-existing staged changes (`git diff --cached` is empty).
 
-If the plan has a material gap, a stale core assumption, a path outside the repository's locally ignored `.scratch/` directory, or pre-existing staged changes, checkpoint it as blocked and ask the user. Never unstage or absorb the user's staged work, and do not silently redesign the plan.
+If the plan has a material gap, a stale core assumption, a path outside the locally ignored `.scratch/` directory of this repository's main worktree (the first entry of `git worktree list`), or pre-existing staged changes, checkpoint it as blocked and ask the user. Never unstage or absorb the user's staged work, and do not silently redesign the plan.
 
 ### 2. Work one task at a time
 
 Start at `## Resume Here`, or the first unchecked step if the pointer is stale. Continue through tasks without waiting between them until the plan is complete, the user interrupts, or a hard stop occurs.
 
-For behavior changes, run `/tdd` at the plan's pre-agreed seams and follow its loop. If the planned slice cannot enter the loop because its behavior already exists, stop and correct the seam with the user; never sabotage green code to manufacture a red result. Preserve unrelated user changes.
+For behavior changes, call the Skill tool with `tdd` at the plan's pre-agreed seams and follow its loop. If the planned slice cannot enter the loop because its behavior already exists, stop and correct the seam with the user; never sabotage green code to manufacture a red result. Preserve unrelated user changes.
 
 ### 3. Handle deviations by intent
 
@@ -74,7 +74,7 @@ Update progress at task completion or interruption, not after every routine tool
 
 ### 6. Review before completion
 
-After every planned task and final verification passes, run `/code-review` against the plan's review fixed point.
+After every planned task and final verification passes, call the Skill tool with `code-review` against the plan's review fixed point.
 
 If review reports any finding:
 
@@ -83,6 +83,6 @@ If review reports any finding:
 3. Record the finding, its evidence, and either a proposed corrective task or an explicit waiver decision under `## Blockers` and `## Resume Here`.
 4. Stop and ask the user whether to amend the plan.
 
-Do not add or implement corrective tasks before approval. After approval, append the tasks, execute them, and run `/code-review` again.
+Do not add or implement corrective tasks before approval. After approval, append the tasks, execute them, and call the Skill tool with `code-review` again.
 
 Record the fresh final commands, result summaries, and Standards/Spec review outcome under `## Final Verification`. Only when all tasks and verification pass and review has no findings may the plan be set to `**Execution:** completed`. Keep the completed plan in `.scratch/` until the user explicitly asks to remove it. Do not push, create a pull request, or clean up the plan automatically.

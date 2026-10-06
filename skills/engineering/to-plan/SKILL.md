@@ -16,7 +16,7 @@ The plan is a local coordination artifact for agents sharing one workspace. Writ
 
 Read the source the user supplied in full. If the source is the conversation or anything another agent cannot read from the workspace, capture the agreed work-item contract and acceptance criteria in the plan. Resolve any interpretation that would change scope, public behavior, architecture, or test seams with the user before writing the plan.
 
-Plan one work item only. For a set of tracer-bullet tickets, plan only the selected frontier ticket rather than the whole feature. This is not the cross-ticket planner removed when planning was unified into `/to-spec` and `/to-tickets`.
+Plan one work item only. For a set of tracer-bullet tickets, plan only the selected ticket rather than the whole feature: usually a frontier ticket for `/implement`, or each ticket in turn when every plan must be approved before `/implement-spec`. A plan for a ticket whose blockers have not landed yet may go stale; the executor re-validates it before editing. This is not the cross-ticket planner removed when planning was unified into `/to-spec` and `/to-tickets`.
 
 ### 2. Inspect the workspace
 
@@ -78,7 +78,7 @@ Use this structure:
 
 ## Tasks
 
-### Task 1: <independently verifiable slice> — pending
+### Task 1: <independently verifiable slice> (pending)
 
 **Files**
 
@@ -117,7 +117,7 @@ Use this structure:
 Plan not started. Begin with Task 1, first unchecked step.
 ```
 
-Prefer vertical tracer-bullet tasks. Each task must be independently verifiable and committable. For behavior changes, invoke `/tdd` and order the slices so each task can enter its loop against behavior genuinely missing from the state left by the previous task. If it cannot, combine or move the slice rather than planning artificial sabotage.
+Prefer vertical tracer-bullet tasks. Each task must be independently verifiable and committable. For behavior changes, call the Skill tool with `tdd` and order the slices so each task can enter its loop against behavior genuinely missing from the state left by the previous task. If it cannot, combine or move the slice rather than planning artificial sabotage.
 
 Do not repeat requirements from a workspace-readable source. Point to it and include only the implementation detail needed to execute reliably.
 
