@@ -23,7 +23,7 @@
       "name": "plan-progress",
       "source": "./mods/plan-progress",
       "description": "Shows the running /implement plan as a stepper above the prompt: tasks, timing, and a cat that runs on the current one.",
-      "version": "0.1.3",
+      "version": "0.1.4",
       "category": "engineering",
       "keywords": [
         "to-plan",
