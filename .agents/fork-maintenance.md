@@ -81,6 +81,8 @@ Required supporting surfaces:
 - `docs/engineering/to-plan.md`
 - `docs/engineering/implement.md`
 - `docs/engineering/implement-spec.md`
+- `mods/plan-progress/hooks/plan.ts` (parses the plan template; see
+  divergence 7)
 - every promoted docs page that describes the main build flow
 
 ### 2. Specs and plans are fixed local artifacts
@@ -236,6 +238,39 @@ while their blockers landed.
 
 `to-plan` correspondingly allows planning any selected ticket, not only a
 frontier ticket, so every plan can be approved before `implement-spec` runs.
+
+### 7. The fork ships a Claude Code mod under `mods/`
+
+Upstream ships skills only. This fork also ships `plan-progress`, a Claude Code
+mod (a plugin of function hooks, not a skill) at `mods/plan-progress/`. It is a
+separate plugin in the fork's marketplace (`plan-progress@steny138`), not part
+of the `mattpocock-skills` plugin, so it does not appear in
+`.claude-plugin/plugin.json`'s `skills` array, the bucket READMEs, or `docs/`.
+
+The mod draws the running `implement` plan above the prompt as a stepper. It
+binds when the `implement` skill's prompt fires (`skill.prompt`), to the plan
+path named in the `/implement` prompt or, failing that, to the first
+`.scratch/<feature>/plans/<work-item>-plan.md` the skill reads. It reads, and
+never writes, the `to-plan` plan template: `**Execution:**` and
+`### Task N: <title> (<status>)`. Task times are measured in the session, not
+read from the plan.
+
+Any change to the plan template in `skills/engineering/to-plan/SKILL.md`, or to
+how `implement` loads a plan, must re-check the parser in
+`mods/plan-progress/hooks/plan.ts` and its tests.
+
+Decision reason: plans are the fork's resumable execution record (divergences
+3, 4, and 6), but following one means opening the file. A read-only band makes
+progress visible without adding state the skills must maintain. Shipping it as
+its own plugin keeps the skills plugin identical in shape to upstream and lets
+users take the mod or leave it.
+
+Canonical sources:
+
+- `mods/plan-progress/`
+- `.claude-plugin/marketplace.json`
+- `.agents/install-block.md`
+- `README.md`
 
 ## What may follow upstream
 
@@ -404,3 +439,10 @@ identity and local spec and plan destinations, inserted `to-plan` into the new
 approved-plan executor (divergence 6). The fork's own `implement` and `to-plan`
 adopted the Skill tool phrasing for `tdd` and `code-review`, and their prose
 dropped em-dashes.
+
+### 2026-10-06: Ship the `plan-progress` mod
+
+The fork added `mods/plan-progress/`, a Claude Code mod that draws the running
+`implement` plan above the prompt as a stepper with a running cat, as a second
+plugin in the fork's marketplace (divergence 7). Its parser reads the `to-plan`
+plan template, so that format now has a consumer outside the skills.
