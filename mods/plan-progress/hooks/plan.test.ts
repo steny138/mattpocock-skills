@@ -1,0 +1,70 @@
+import { expect, test } from 'claude-code/testing'
+
+import type { Bound } from '../types'
+import { advance, brief, currentIndex, layout, parsePlan, planId } from './plan'
+
+const PLAN = `# Demo Implementation Plan
+
+**Execution:** in-progress
+
+## Tasks
+
+### Task 1: Add session model (completed)
+
+### Task 2: Refresh token on expiry (in-progress)
+
+### Task 3: Expose logout endpoint (pending)
+
+## Blockers
+
+- None.
+`
+
+test('a plan path yields feature/work-item, anything else null', async () => {
+  expect(planId('/repo/.scratch/auth/plans/01-session-plan.md')).toBe('auth/01-session')
+  expect(planId('/repo/.scratch/auth/implement-spec.md')).toBe(null)
+  expect(planId('/repo/src/plan.md')).toBe(null)
+})
+
+test('parsePlan reads the execution state and each task', async () => {
+  const plan = parsePlan(PLAN)
+  expect(plan.status).toBe('in-progress')
+  expect(plan.tasks.map(t => t.status)).toEqual(['completed', 'in-progress', 'pending'])
+  expect(plan.tasks[1]?.title).toBe('Refresh token on expiry')
+  expect(currentIndex(plan)).toBe(1)
+
+  expect(parsePlan(PLAN.replace('in-progress\n', 'blocked\n')).status).toBe('blocked')
+  expect(currentIndex(parsePlan(PLAN.replace(/\((in-progress|pending)\)/g, '(completed)')))).toBe(3)
+})
+
+test('advance times the task that just completed', async () => {
+  const start: Bound = {
+    path: 'p',
+    id: 'auth/01',
+    taskStartedAt: 0,
+    durations: {},
+    plan: parsePlan(PLAN.replace('(completed)', '(pending)').replace('(in-progress)', '(pending)')),
+  }
+
+  const after = advance(start, parsePlan(PLAN), 120_000)
+  expect(after.durations).toEqual({ 0: 120 })
+  expect(after.taskStartedAt).toBe(120_000)
+
+  const same = advance(after, parsePlan(PLAN), 200_000)
+  expect(same.durations).toEqual({ 0: 120 })
+  expect(same.taskStartedAt).toBe(120_000)
+})
+
+test('brief formats a duration the way the band shows it', async () => {
+  expect(brief(45)).toBe('45s')
+  expect(brief(240)).toBe('4m')
+  expect(brief(3900)).toBe('1h 5m')
+})
+
+test('layout spreads steps, shrinks them, then windows around the current task', async () => {
+  expect(layout(5, 1, 100)).toEqual({ step: 20, from: 0, to: 5, cutLeft: false, cutRight: false })
+  expect(layout(3, 0, 200)).toEqual({ step: 40, from: 0, to: 3, cutLeft: false, cutRight: false })
+  expect(layout(5, 1, 50)).toEqual({ step: 10, from: 0, to: 5, cutLeft: false, cutRight: false })
+  expect(layout(12, 7, 40)).toEqual({ step: 8, from: 5, to: 10, cutLeft: true, cutRight: true })
+  expect(layout(12, 11, 40)).toEqual({ step: 8, from: 7, to: 12, cutLeft: true, cutRight: false })
+})

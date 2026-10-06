@@ -24,6 +24,26 @@ This installs the fork's managed plugin rather than the separate upstream listin
 
 </canonical-block>
 
+## Claude Code: the plan-progress mod
+
+An optional second plugin from the same marketplace. It is a Claude Code mod, not a skill, so it is independent of the "pick one" rule below.
+
+<canonical-block name="claude-code-plan-progress">
+
+```bash
+claude plugin marketplace add steny138/mattpocock-skills
+claude plugin install plan-progress@steny138
+```
+
+Or, from inside a session:
+
+```
+/plugin marketplace add steny138/mattpocock-skills
+/plugin install plan-progress@steny138
+```
+
+</canonical-block>
+
 ## Codex, and other agents: skills.sh
 
 The plugin is Claude Code only. Everywhere else, [skills.sh](https://skills.sh/steny138/mattpocock-skills) copies editable skill files into the project. Use the whole-set form on `README.md`:
