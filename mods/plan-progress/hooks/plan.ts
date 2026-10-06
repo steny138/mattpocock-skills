@@ -12,6 +12,12 @@ export const planId = (path: string): string | null => {
   return match ? `${match[1]}/${match[2]}` : null
 }
 
+/** Whether a skill name is `implement`, bare or under a plugin namespace (`mattpocock-skills:implement`). */
+export const isImplementSkill = (name: string): boolean => /^(?:[\w-]+:)?implement$/.test(name)
+
+/** Whether a prompt invokes `/implement`, bare or under a plugin namespace. */
+export const isImplementCommand = (text: string): boolean => /^\s*\/(?:[\w-]+:)?implement\b(?!-)/.test(text)
+
 /** Reads a to-plan implementation plan into its summary. */
 export const parsePlan = (text: string): PlanSummary => {
   const execution = /\*\*Execution:\*\*\s*([\w-]+)/.exec(text)?.[1] ?? ''

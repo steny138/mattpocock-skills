@@ -2,7 +2,17 @@ import { atom, read, update } from 'claude-code'
 import type { EngineInterface, Register } from 'claude-code'
 
 import type { Bound, Task } from '../types'
-import { advance, brief, currentIndex, layout, parsePlan, planId, truncate } from './plan'
+import {
+  advance,
+  brief,
+  currentIndex,
+  isImplementCommand,
+  isImplementSkill,
+  layout,
+  parsePlan,
+  planId,
+  truncate,
+} from './plan'
 import { COLUMNS as CAT_COLUMNS, ROWS as CAT_ROWS, frameFor, type Mood } from './sprite'
 
 const FRAME_MS = 220
@@ -69,15 +79,15 @@ export const register: Register = on => {
   })
 
   // /implement fired: the next plan file it reads is the one it executes.
-  on('skill.prompt', { skill: 'implement' }, async ($, e, next) => {
-    isArmed = true
+  on('skill.prompt', async ($, e, next) => {
+    if (isImplementSkill(e.skill)) isArmed = true
 
     return next(e)
   })
 
   on('prompt.submit', async ($, e, next) => {
     const path = /\S*\.scratch\/[^\s]+-plan\.md/.exec(e.text)?.[0]
-    if (/^\s*\/implement\b/.test(e.text) && path !== undefined) {
+    if (isImplementCommand(e.text) && path !== undefined) {
       await bind($, path)
       isArmed = false
     }
