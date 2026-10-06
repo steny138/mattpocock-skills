@@ -1,7 +1,7 @@
 import { expect, test } from 'claude-code/testing'
 
 import type { Bound } from '../types'
-import { advance, brief, currentIndex, layout, parsePlan, planId } from './plan'
+import { advance, brief, currentIndex, isImplementCommand, isImplementSkill, layout, parsePlan, planId } from './plan'
 
 const PLAN = `# Demo Implementation Plan
 
@@ -24,6 +24,18 @@ test('a plan path yields feature/work-item, anything else null', async () => {
   expect(planId('/repo/.scratch/auth/plans/01-session-plan.md')).toBe('auth/01-session')
   expect(planId('/repo/.scratch/auth/implement-spec.md')).toBe(null)
   expect(planId('/repo/src/plan.md')).toBe(null)
+})
+
+test('implement matches bare or plugin-namespaced, not its siblings', async () => {
+  expect(isImplementSkill('implement')).toBe(true)
+  expect(isImplementSkill('mattpocock-skills:implement')).toBe(true)
+  expect(isImplementSkill('implement-spec')).toBe(false)
+  expect(isImplementSkill('mattpocock-skills:implement-spec')).toBe(false)
+
+  expect(isImplementCommand('/implement .scratch/auth/plans/01-plan.md')).toBe(true)
+  expect(isImplementCommand('/mattpocock-skills:implement .scratch/auth/plans/01-plan.md')).toBe(true)
+  expect(isImplementCommand('/mattpocock-skills:implement-spec .scratch/auth/spec.md')).toBe(false)
+  expect(isImplementCommand('please /implement it')).toBe(false)
 })
 
 test('parsePlan reads the execution state and each task', async () => {
