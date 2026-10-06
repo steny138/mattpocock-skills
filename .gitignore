@@ -1,2 +1,4 @@
 node_modules
 .claude
+# Written by the Claude Code engine beside a mod it loads: the API types for the editor.
+mods/*/.claude-plugin/types/

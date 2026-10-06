@@ -1,0 +1,12 @@
+{
+  "name": "plan-progress",
+  "version": "0.1.0",
+  "description": "Shows the running /implement plan as a stepper above the prompt: tasks, timing, and a cat that runs on the current one.",
+  "author": {
+    "name": "steny138",
+    "url": "https://github.com/steny138"
+  },
+  "homepage": "https://github.com/steny138/mattpocock-skills",
+  "repository": "https://github.com/steny138/mattpocock-skills",
+  "types": "./types/index.d.ts"
+}

@@ -85,6 +85,22 @@ In your agent, run it once per repo. It will:
 
 ### 3. Bam - you're ready to go.
 
+### Optional: the `plan-progress` mod (Claude Code)
+
+[`plan-progress`](./mods/plan-progress) is a Claude Code mod, a function-hooks plugin rather than a skill, shipped as a second plugin in this fork's marketplace. While `/implement` runs, it draws the plan above the prompt as a stepper: one node per task boundary plus the finish line, each task labelled with its mark and time (`✓ 2m Add session model`, `▶ 4m Refresh token on expiry`), and a pixel cat that runs above the current task, stands still in red when the plan is blocked, and stops at the finish when it completes. Task times are measured in the running session. It binds to the plan `/implement` reads, refreshes when the plan file changes, and clears after your next message once the plan is completed. The cat only draws in a terminal; the Desktop app shows the stepper alone.
+
+```bash
+claude plugin marketplace add steny138/mattpocock-skills
+claude plugin install plan-progress@steny138
+```
+
+Or, from inside a session:
+
+```
+/plugin marketplace add steny138/mattpocock-skills
+/plugin install plan-progress@steny138
+```
+
 ## Why These Skills Exist
 
 The original project was built to address common failure modes with Claude Code, Codex, and other coding agents. This fork keeps that foundation while separating feature specifications from per-work-item implementation plans.
