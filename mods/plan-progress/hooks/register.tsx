@@ -78,7 +78,7 @@ export const register: Register = on => {
     return next(e)
   })
 
-  // /implement fired: the next plan file it reads is the one it executes.
+  // /implement fired: the next plan file it touches is the one it executes.
   on('skill.prompt', async ($, e, next) => {
     if (isImplementSkill(e.skill)) isArmed = true
 
@@ -104,7 +104,8 @@ export const register: Register = on => {
     const path = 'file_path' in e && typeof e.file_path === 'string' ? e.file_path : ''
     if (planId(path) === null) return result
 
-    if (isArmed && e.tool === 'Read') {
+    // Any tool counts: a plan written earlier in the session is already in context, so /implement may Edit it without a Read.
+    if (isArmed) {
       isArmed = false
       await bind($, path)
     } else {
