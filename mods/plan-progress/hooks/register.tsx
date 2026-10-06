@@ -35,6 +35,21 @@ const bind = async ($: EngineInterface, path: string): Promise<void> => {
   await update($, bound, () => fresh)
 }
 
+const absolute = async ($: EngineInterface, path: string): Promise<string> =>
+  path.startsWith('/') ? path : `${await $.session.cwd()}/${path}`
+
+/**
+ * /implement started: binds the plan its arguments name, else the plan the session last touched.
+ * Resolves true when it bound neither, so the next plan touched is the one to bind.
+ */
+const startImplement = async ($: EngineInterface, named: string | null, lastPlan: string | null): Promise<boolean> => {
+  const path = named === null ? lastPlan : await absolute($, named)
+  if (path === null) return true
+  await bind($, path)
+
+  return false
+}
+
 const refresh = async ($: EngineInterface): Promise<void> => {
   const current = await read($, bound)
   if (current === null) return
@@ -80,35 +95,29 @@ export const register: Register = on => {
     return next(e)
   })
 
-  // /implement fired: it executes the plan the session last touched, or else the next one it touches.
-  on('skill.prompt', async ($, e, next) => {
-    if (isImplementSkill(e.skill)) {
-      if (lastPlan === null) isArmed = true
-      else await bind($, lastPlan)
-    }
-
-    return next(e)
-  })
-
+  // /implement starts in one of two ways, never through skill.prompt: cc-plugin-sec-default bypasses that event
+  // for user-tier plugins. Typed, it arrives here as its own text; invoked by the model, it is a Skill tool call.
   on('prompt.submit', async ($, e, next) => {
-    const path = /\S*\.scratch\/[^\s]+-plan\.md/.exec(e.text)?.[0]
-    if (isImplementCommand(e.text) && path !== undefined) {
-      await bind($, path)
-      isArmed = false
-    }
-
     // A finished plan stays on the band until the person's next message.
     const b = await read($, bound)
     if (b?.plan?.status === 'completed') await update($, bound, () => null)
+
+    if (isImplementCommand(e.text)) isArmed = await startImplement($, planPathIn(e.text), lastPlan)
 
     return next(e)
   })
 
   on('tool.call', async ($, e, next) => {
     const result = await next(e)
+    if (e.tool === 'Skill') {
+      if (isImplementSkill(e.skill)) isArmed = await startImplement($, planPathIn(e.args ?? ''), lastPlan)
+
+      return result
+    }
+
     const named = e.tool === 'Bash' ? planPathIn(e.command) : 'file_path' in e && typeof e.file_path === 'string' ? e.file_path : null
     if (named === null || planId(named) === null) return result
-    const path = named.startsWith('/') ? named : `${await $.session.cwd()}/${named}`
+    const path = await absolute($, named)
     lastPlan = path
 
     // Any tool counts: a plan already in context may be edited without a Read, or through a Bash script.
