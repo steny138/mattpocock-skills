@@ -11,6 +11,7 @@ import {
   layout,
   parsePlan,
   planId,
+  planPathIn,
   truncate,
 } from './plan'
 import { COLUMNS as CAT_COLUMNS, ROWS as CAT_ROWS, frameFor, type Mood } from './sprite'
@@ -45,6 +46,7 @@ const refresh = async ($: EngineInterface): Promise<void> => {
 
 export const register: Register = on => {
   let isArmed = false
+  let lastPlan: string | null = null
   let bandId: string | null = null
   let frame = 0
   let lastMtime = 0
@@ -78,9 +80,12 @@ export const register: Register = on => {
     return next(e)
   })
 
-  // /implement fired: the next plan file it touches is the one it executes.
+  // /implement fired: it executes the plan the session last touched, or else the next one it touches.
   on('skill.prompt', async ($, e, next) => {
-    if (isImplementSkill(e.skill)) isArmed = true
+    if (isImplementSkill(e.skill)) {
+      if (lastPlan === null) isArmed = true
+      else await bind($, lastPlan)
+    }
 
     return next(e)
   })
@@ -101,10 +106,12 @@ export const register: Register = on => {
 
   on('tool.call', async ($, e, next) => {
     const result = await next(e)
-    const path = 'file_path' in e && typeof e.file_path === 'string' ? e.file_path : ''
-    if (planId(path) === null) return result
+    const named = e.tool === 'Bash' ? planPathIn(e.command) : 'file_path' in e && typeof e.file_path === 'string' ? e.file_path : null
+    if (named === null || planId(named) === null) return result
+    const path = named.startsWith('/') ? named : `${await $.session.cwd()}/${named}`
+    lastPlan = path
 
-    // Any tool counts: a plan written earlier in the session is already in context, so /implement may Edit it without a Read.
+    // Any tool counts: a plan already in context may be edited without a Read, or through a Bash script.
     if (isArmed) {
       isArmed = false
       await bind($, path)
