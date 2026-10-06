@@ -12,6 +12,10 @@ export const planId = (path: string): string | null => {
   return match ? `${match[1]}/${match[2]}` : null
 }
 
+/** The first plan path a shell command names (a python or sed edit), or null. */
+export const planPathIn = (command: string): string | null =>
+  /[^\s'"=]*\.scratch\/[^/\s'"]+\/plans\/[^/\s'"]+-plan\.md/.exec(command)?.[0] ?? null
+
 /** Whether a skill name is `implement`, bare or under a plugin namespace (`mattpocock-skills:implement`). */
 export const isImplementSkill = (name: string): boolean => /^(?:[\w-]+:)?implement$/.test(name)
 

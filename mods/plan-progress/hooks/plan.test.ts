@@ -1,7 +1,7 @@
 import { expect, test } from 'claude-code/testing'
 
 import type { Bound } from '../types'
-import { advance, brief, currentIndex, isImplementCommand, isImplementSkill, layout, parsePlan, planId } from './plan'
+import { advance, brief, currentIndex, isImplementCommand, isImplementSkill, layout, parsePlan, planId, planPathIn } from './plan'
 
 const PLAN = `# Demo Implementation Plan
 
@@ -24,6 +24,17 @@ test('a plan path yields feature/work-item, anything else null', async () => {
   expect(planId('/repo/.scratch/auth/plans/01-session-plan.md')).toBe('auth/01-session')
   expect(planId('/repo/.scratch/auth/implement-spec.md')).toBe(null)
   expect(planId('/repo/src/plan.md')).toBe(null)
+})
+
+test('a shell command yields the plan path it edits, not a glob or a spec', async () => {
+  expect(planPathIn("python3 - <<'EOF'\np='.scratch/metrics/plans/metrics-plan.md'\nEOF")).toBe(
+    '.scratch/metrics/plans/metrics-plan.md',
+  )
+  expect(planPathIn("sed -i '' 's/a/b/' /repo/.scratch/auth/plans/01-session-plan.md")).toBe(
+    '/repo/.scratch/auth/plans/01-session-plan.md',
+  )
+  expect(planPathIn('wc -l .scratch/metrics/spec.md .scratch/metrics/plans/*.md')).toBe(null)
+  expect(planPathIn('git status --short')).toBe(null)
 })
 
 test('implement matches bare or plugin-namespaced, not its siblings', async () => {
