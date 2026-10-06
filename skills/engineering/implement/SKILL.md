@@ -23,7 +23,7 @@ Before editing code, confirm:
 - unrelated working-tree changes can be preserved;
 - the index has no pre-existing staged changes (`git diff --cached` is empty).
 
-If the plan has a material gap, a stale core assumption, a path outside the locally ignored `.scratch/` directory of this repository's main worktree (the first entry of `git worktree list`), or pre-existing staged changes, checkpoint it as blocked and ask the user. Never unstage or absorb the user's staged work, and do not silently redesign the plan.
+If the plan has a material gap, a stale core assumption, a path outside the locally ignored `.scratch/` directory of the current worktree or of this repository's main worktree (the first entry of `git worktree list`), or pre-existing staged changes, checkpoint it as blocked and ask the user. Never unstage or absorb the user's staged work, and do not silently redesign the plan.
 
 ### 2. Work one task at a time
 

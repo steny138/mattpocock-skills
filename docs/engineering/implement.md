@@ -22,7 +22,7 @@ Where the work currently lives decides the step before it:
 
 ## Prerequisites
 
-The approved plan must live under the repository's locally ignored `.scratch/` directory and identify the workspace, branch, review fixed point, tasks, and test seams. `implement` commits to the branch named by that plan; it does not create or switch branches for you.
+The approved plan must live under the locally ignored `.scratch/` directory of the worktree you run it in, or of the repository's main worktree, and identify the workspace, branch, review fixed point, tasks, and test seams. `implement` commits to the branch named by that plan; it does not create or switch branches for you.
 
 The Git index must be empty before execution begins. Pre-existing staged changes are a hard stop because each completed task stages and commits only its own green diff.
 
