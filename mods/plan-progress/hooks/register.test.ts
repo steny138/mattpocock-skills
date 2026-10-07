@@ -74,6 +74,30 @@ test('typed /implement binds a plan it edits through Bash', async ($, on) => {
   expect(await band.find({ text: /✓.*Add ordering_user tag/ })).toBeDefined()
 })
 
+test('a bound plan moved to another checkout is followed to its new path', async ($, on) => {
+  const MOVED = '/main/.scratch/metrics/plans/metrics-plan.md'
+  mock.clock(on, { now: 1_000 })
+  on('ui.render', async () => ({ type: 'Box', props: {}, children: [] }))
+  let isMoved = false
+  on('fs.read', async (_$, e) => {
+    if (e.path === PLAN_PATH && isMoved) throw new Error('ENOENT')
+
+    return { value: plan(e.path === MOVED ? 'completed' : 'pending') }
+  })
+  on('session.cwd', async () => ({ value: '/repo' }))
+  on('prompt.submit', async ($, e) => ({ text: e.text }))
+  on('tool.call', async () => ({ result: { stdout: '', stderr: '', interrupted: false } }))
+
+  await $.tool.call({ tool: 'Read', file_path: PLAN_PATH })
+  await $.prompt.submit(TYPED_IMPLEMENT)
+  isMoved = true
+  await $.tool.call({ tool: 'Bash', command: `mkdir -p /main/.scratch/metrics/plans && mv .scratch/metrics/plans/metrics-plan.md /main/.scratch/metrics/plans/` })
+  await $.tool.call({ tool: 'Bash', command: `P=${MOVED}\npython3 - "$P" <<'EOF'\nEOF` })
+
+  const band = await $.ui.mount({ plugin: 'plan-progress', surface: 'desktop', component: 'AbovePrompt', props: PROPS })
+  expect(await band.find({ text: /✓.*Add ordering_user tag/ })).toBeDefined()
+})
+
 test('implement through the Skill tool binds the plan in its args', async ($, on) => {
   mock.clock(on, { now: 1_000 })
   on('ui.render', async () => ({ type: 'Box', props: {}, children: [] }))

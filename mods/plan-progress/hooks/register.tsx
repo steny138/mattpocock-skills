@@ -126,7 +126,12 @@ export const register: Register = on => {
       await bind($, path)
     } else {
       const b = await read($, bound)
-      if (b !== null && b.path === path && e.tool !== 'Read') await refresh($)
+      if (b === null || b.id !== planId(path)) return result
+      // The same plan at a new path was moved (a worktree plan into the main checkout): follow it there.
+      if (b.path !== path) {
+        await update($, bound, current => (current === null ? null : { ...current, path }))
+        await refresh($)
+      } else if (e.tool !== 'Read') await refresh($)
     }
 
     return result
