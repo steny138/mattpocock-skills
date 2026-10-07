@@ -23,7 +23,9 @@ Before editing code, confirm:
 - unrelated working-tree changes can be preserved;
 - the index has no pre-existing staged changes (`git diff --cached` is empty).
 
-If the plan has a material gap, a stale core assumption, a path outside the locally ignored `.scratch/` directory of the current worktree or of this repository's main worktree (the first entry of `git worktree list`), or pre-existing staged changes, checkpoint it as blocked and ask the user. Never unstage or absorb the user's staged work, and do not silently redesign the plan.
+Start by locating the current branch: `git branch --show-current` and `git rev-parse --show-toplevel` give the branch and the worktree it is checked out in, and the plan's `**Branch:**` and `**Workspace:**` must name them. The plan normally lives under that worktree's locally ignored `.scratch/`. A plan under another worktree's `.scratch/` is valid only when its `**Workspace:**` already names this worktree, as `/implement-spec` leaves it after rebinding. Work on the plan where it is; never move or copy it. When `**Workspace:**` or `**Branch:**` does not match (a plan written before this rule may name the main repository root), ask the user whether to rebind the plan to this worktree and branch; if they agree, update the fields and record the rebinding under `## Deviations`.
+
+If the plan has a material gap, a stale core assumption, a path that fails those location rules, or pre-existing staged changes, checkpoint it as blocked and ask the user. Never unstage or absorb the user's staged work, and do not silently redesign the plan.
 
 ### 2. Work one task at a time
 

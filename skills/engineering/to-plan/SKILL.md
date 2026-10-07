@@ -32,13 +32,13 @@ If a behavior-changing plan has no agreed test seam, stop and ask the user to co
 
 ### 3. Keep the plan local
 
-Write inside the current repository at:
+Write inside the worktree that has the current branch checked out (`git rev-parse --show-toplevel`; in a linked worktree that is the linked worktree, not the main one) at:
 
 ```text
 .scratch/<feature>/plans/<work-item>-plan.md
 ```
 
-If the user supplies a path, require it to stay under the repository's `.scratch/` directory. If no unambiguous feature or work-item slug is available, ask the user instead of inventing one.
+If the user supplies a path, require it to stay under that worktree's `.scratch/` directory. If no unambiguous feature or work-item slug is available, ask the user instead of inventing one.
 
 Resolve the repository-local exclude file with:
 
@@ -60,7 +60,7 @@ Use this structure:
 **Goal:** <one externally observable outcome>
 **Execution:** not-started
 **Last updated:** <timestamp>
-**Workspace:** <repository root or worktree>
+**Workspace:** <root of the worktree that has the branch checked out>
 **Branch:** <branch>
 **Review fixed point:** <commit SHA or ref>
 
