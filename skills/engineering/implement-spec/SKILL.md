@@ -4,7 +4,7 @@ description: "Execute every ticket's approved local plan for one spec in paralle
 disable-model-invocation: true
 ---
 
-You have been provided a local spec at `.scratch/<feature>/spec.md`. Its tickets came from `/to-tickets`, and every ticket must already have an approved local plan at `.scratch/<feature>/plans/<ticket>-plan.md`, written by `/to-plan`.
+You have been provided a local spec at `.scratch/<feature>/spec.md` in the worktree that has the current branch checked out (`git rev-parse --show-toplevel`), the **orchestrating worktree**. Its tickets came from `/to-tickets`, and every ticket must already have an approved local plan at `.scratch/<feature>/plans/<ticket>-plan.md`, written by `/to-plan`.
 
 The goal is every approved plan executed and merged onto a single **integration branch**, then stopped at a clean `code-review`. You orchestrate execution only: the plans own **how**, and no material decision is yours to make.
 
@@ -18,13 +18,13 @@ Communication to and from subagents should be sparse. Communicate primarily thro
 
 1. Read the spec, the tickets, and every plan. Stop and tell the user which tickets need `/to-plan` if any ticket has no plan, or if any plan has not been approved or is not `**Execution:** not-started` (resuming a run is the exception; see step 10). Read the tickets' blocking edges to build the task graph.
 
-2. Record the run at `.scratch/<feature>/implement-spec.md` in the **main worktree** (the first entry of `git worktree list`): the integration branch, its base commit, a row per ticket with its plan path, worktree, branch, and status, and a `## Resume Here` naming the next concrete action. Keep it updated as tickets are dispatched, merged, or blocked. Like the plans, it lives under the locally excluded `.scratch/` and is never staged or committed.
+2. Record the run at `.scratch/<feature>/implement-spec.md` in the orchestrating worktree, beside the spec and plans: the integration branch, its base commit, a row per ticket with its plan path, worktree, branch, and status, and a `## Resume Here` naming the next concrete action. Keep it updated as tickets are dispatched, merged, or blocked. Like the plans, it lives under the locally excluded `.scratch/` and is never staged or committed.
 
 3. (optional) Use an **exploration subagent** to conduct any exploration the plans still need: relevant codebase files or external documentation. Ensure the exploration subagent can save files: it should save its markdown notes in a directory outside the repo, accessible by all future subagents.
 
 4. Create the integration branch from the current `HEAD`. Do not open a pull request.
 
-5. For each ticket on the frontier, create a worktree on its own branch from the integration branch tip. Before dispatching, rebind its plan to that worktree: set `**Workspace:**`, `**Branch:**`, and `**Review fixed point:**` (the integration tip the worktree was created from), and record the rebinding under the plan's `## Deviations`. Plans stay in the main worktree; give each implementer the **absolute path** to its plan, since a new worktree does not contain the untracked `.scratch/`. One plan goes to exactly one implementer.
+5. For each ticket on the frontier, create a worktree on its own branch from the integration branch tip. Before dispatching, rebind its plan to that worktree: set `**Workspace:**`, `**Branch:**`, and `**Review fixed point:**` (the integration tip the worktree was created from), and record the rebinding under the plan's `## Deviations`. Plans stay in the orchestrating worktree; give each implementer the **absolute path** to its plan, since a new worktree does not contain the untracked `.scratch/`. One plan goes to exactly one implementer.
 
 6. Use **implementer subagents** to execute the plans, each in its own worktree. Each implementer subagent must not spawn subagents of its own, and executes its plan under the same rules as `/implement`:
    - confirm its worktree is based on the integration branch and matches the plan's workspace, branch, and fixed point, and that the index is empty;

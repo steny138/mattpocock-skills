@@ -14,7 +14,7 @@ Reach for it after selecting one frontier ticket from [to-tickets](https://aiher
 
 ## Prerequisites
 
-Run it inside the repository or worktree where implementation will happen. The skill writes `.scratch/<feature>/plans/<work-item>-plan.md` and ensures `.scratch` is ignored through the repository-local `.git/info/exclude`, so the plan remains available to agents sharing that workspace without entering version control.
+Run it inside the worktree that has the branch you will implement on checked out. The skill writes, inside that worktree (a linked worktree, not the main one, when you are in one), `.scratch/<feature>/plans/<work-item>-plan.md` and ensures `.scratch` is ignored through the repository-local `.git/info/exclude`, so the plan remains available to agents sharing that workspace without entering version control.
 
 ## One work item, one resumable plan
 

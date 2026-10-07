@@ -139,7 +139,10 @@ local plan and validates that plan against the current workspace before editing.
 
 The following invariants are mandatory:
 
-- The plan path remains under the current repository's `.scratch/` directory.
+- The current branch and the worktree it is checked out in are located first;
+  the plan names both and lives under that worktree's `.scratch/`, or under
+  another worktree's `.scratch/` only when it already names this worktree. The
+  plan is never moved or copied.
 - The plan's workspace, branch, review fixed point, files, commands, assumptions,
   next task, and test seam are checked before implementation.
 - A pre-existing staged index is a hard stop; user changes are never unstaged or
@@ -214,10 +217,12 @@ branch, merger subagents) but makes it an executor of approved plans only:
 
 - Every ticket must have an approved, not-started `to-plan` plan before the run
   starts; a missing or unapproved plan is a hard stop.
-- Plans stay in the main worktree's `.scratch/`. Each implementer receives the
-  absolute path to exactly one plan, because untracked `.scratch/` is absent
-  from new worktrees. `implement` accordingly accepts plans under the main
-  worktree's `.scratch/`, not only the current worktree's.
+- The spec, plans, and run record stay in the orchestrating worktree's
+  `.scratch/`: the worktree that has the current branch checked out when the
+  run starts. Each implementer receives the absolute path to exactly one plan,
+  because untracked `.scratch/` is absent from new worktrees. `implement`
+  accordingly accepts a plan under another worktree's `.scratch/` once the
+  rebinding below names the implementer's worktree.
 - Before dispatch, the plan's workspace, branch, and review fixed point are
   rebound to the implementer's worktree and the rebinding is recorded under
   `## Deviations`.
@@ -446,3 +451,17 @@ The fork added `mods/plan-progress/`, a Claude Code mod that draws the running
 `implement` plan above the prompt as a stepper with a running cat, as a second
 plugin in the fork's marketplace (divergence 7). Its parser reads the `to-plan`
 plan template, so that format now has a consumer outside the skills.
+
+### 2026-10-07: Locate specs and plans by the current branch's worktree
+
+`to-plan` wrote to "the current repository" (read as the linked worktree) while
+the installed 1.3.1 `implement` accepted only the main worktree's `.scratch/`,
+so a session moved its plan with `mv` instead of asking. `9c3f600` widened
+`implement` on main, but no release followed, so installed plugins kept the old
+rule. `to-spec`, `to-plan`, `implement`, and `implement-spec` now all locate the
+current branch and the worktree it is checked out in first, and keep the spec,
+plans, and run record there; `implement` accepts a plan in another worktree only
+once it names this worktree, and never moves or copies one (divergences 4 and
+6). The fork's release workflow has never run, so its own fixes do not change
+the version; the plugin version was bumped by hand to `1.3.2` so installed
+copies update. Reconcile it with upstream's next release on integration.

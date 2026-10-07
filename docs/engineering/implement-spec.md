@@ -27,7 +27,7 @@ You invoke this by typing `/implement-spec`, and the agent won't reach for it on
 
 ## The integration branch
 
-Everything lands on one branch. Before dispatching a ticket, the orchestrator creates its worktree from the integration branch tip and rebinds the plan's workspace, branch, and review fixed point to it, recording that under the plan's deviations. The plans themselves stay in the main worktree, and each implementer gets the absolute path to its own, because `.scratch/` is untracked and a new worktree does not contain it.
+Everything lands on one branch. Before dispatching a ticket, the orchestrator creates its worktree from the integration branch tip and rebinds the plan's workspace, branch, and review fixed point to it, recording that under the plan's deviations. The plans themselves stay in the orchestrating worktree, the one you run `implement-spec` in alongside the spec, and each implementer gets the absolute path to its own, because `.scratch/` is untracked and a new worktree does not contain it.
 
 Each implementer then:
 

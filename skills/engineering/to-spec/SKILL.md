@@ -14,7 +14,7 @@ This skill takes the current conversation context and codebase understanding and
 
 Check with the user that these seams match their expectations.
 
-3. Write the spec using the template below at:
+3. Write the spec using the template below, inside the worktree that has the current branch checked out (`git rev-parse --show-toplevel`; in a linked worktree that is the linked worktree, not the main one), at:
 
 ```text
 .scratch/<feature>/spec.md

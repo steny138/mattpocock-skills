@@ -19,7 +19,7 @@ Reach for it when the build is too big for one agent [session](https://www.aiher
 
 ## Prerequisites
 
-Run it inside the repository or worktree where later planning and implementation will happen. The skill ensures `.scratch/` is excluded through the repository-local `.git/info/exclude`; the spec remains available to agents sharing that workspace without entering version control.
+Run it inside the worktree that has the branch you will plan and implement on checked out. The spec is written there, in a linked worktree rather than the main one when you are in one. The skill ensures `.scratch/` is excluded through the repository-local `.git/info/exclude`; the spec remains available to agents sharing that workspace without entering version control.
 
 ## The spec is a decision record
 

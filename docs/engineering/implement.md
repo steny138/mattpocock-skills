@@ -22,7 +22,7 @@ Where the work currently lives decides the step before it:
 
 ## Prerequisites
 
-The approved plan must live under the locally ignored `.scratch/` directory of the worktree you run it in, or of the repository's main worktree, and identify the workspace, branch, review fixed point, tasks, and test seams. `implement` commits to the branch named by that plan; it does not create or switch branches for you.
+`implement` first checks which branch is checked out and in which worktree. The approved plan must name that branch and worktree, and normally lives under that worktree's locally ignored `.scratch/`. A plan in another worktree's `.scratch/` is accepted only when it already names this worktree, as [implement-spec](https://aihero.dev/skills-implement-spec) leaves it. The plan stays where it is; `implement` never moves it. It must also identify the workspace, branch, review fixed point, tasks, and test seams. `implement` commits to the branch named by that plan; it does not create or switch branches for you.
 
 The Git index must be empty before execution begins. Pre-existing staged changes are a hard stop because each completed task stages and commits only its own green diff.
 
