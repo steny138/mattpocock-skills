@@ -127,8 +127,13 @@ export const register: Register = on => {
     } else {
       const b = await read($, bound)
       if (b === null || b.id !== planId(path)) return result
-      // The same plan at a new path was moved (a worktree plan into the main checkout): follow it there.
+      // The skills forbid moving a plan, but one that was moved anyway still finishes on the band. Only a real move
+      // counts: the bound file is gone and this one exists. A same-named copy elsewhere, or a path the shell would
+      // have expanded (`$WT/.scratch/...`), leaves the band where it is.
       if (b.path !== path) {
+        const isGone = await $.fs.stat(b.path).then(() => false, () => true)
+        const isThere = await $.fs.stat(path).then(() => true, () => false)
+        if (!isGone || !isThere) return result
         await update($, bound, current => (current === null ? null : { ...current, path }))
         await refresh($)
       } else if (e.tool !== 'Read') await refresh($)

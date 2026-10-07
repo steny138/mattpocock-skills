@@ -74,28 +74,91 @@ test('typed /implement binds a plan it edits through Bash', async ($, on) => {
   expect(await band.find({ text: /✓.*Add ordering_user tag/ })).toBeDefined()
 })
 
-test('a bound plan moved to another checkout is followed to its new path', async ($, on) => {
-  const MOVED = '/main/.scratch/metrics/plans/metrics-plan.md'
+const OTHER = '/main/.scratch/metrics/plans/metrics-plan.md'
+
+/**
+ * A session bound to PLAN_PATH whose files are `files`: the bound plan is pending, and any other path that exists
+ * reads as completed, so the band shows ✓ only if it followed one.
+ */
+const boundWith = async ($: any, on: any, files: Set<string>) => {
   mock.clock(on, { now: 1_000 })
   on('ui.render', async () => ({ type: 'Box', props: {}, children: [] }))
-  let isMoved = false
-  on('fs.read', async (_$, e) => {
-    if (e.path === PLAN_PATH && isMoved) throw new Error('ENOENT')
+  const exists = (path: string) => {
+    if (!files.has(path)) throw new Error('ENOENT')
+  }
+  on('fs.read', async (_$: unknown, e: { path: string }) => {
+    exists(e.path)
 
-    return { value: plan(e.path === MOVED ? 'completed' : 'pending') }
+    return { value: plan(e.path === PLAN_PATH ? 'pending' : 'completed') }
+  })
+  on('fs.stat', async (_$: unknown, e: { path: string }) => {
+    exists(e.path)
+
+    return { value: { mtimeMs: 1, size: 1, isFile: true, isDirectory: false } }
   })
   on('session.cwd', async () => ({ value: '/repo' }))
-  on('prompt.submit', async ($, e) => ({ text: e.text }))
+  on('prompt.submit', async (_$: unknown, e: { text: string }) => ({ text: e.text }))
   on('tool.call', async () => ({ result: { stdout: '', stderr: '', interrupted: false } }))
 
   await $.tool.call({ tool: 'Read', file_path: PLAN_PATH })
   await $.prompt.submit(TYPED_IMPLEMENT)
-  isMoved = true
-  await $.tool.call({ tool: 'Bash', command: `mkdir -p /main/.scratch/metrics/plans && mv .scratch/metrics/plans/metrics-plan.md /main/.scratch/metrics/plans/` })
-  await $.tool.call({ tool: 'Bash', command: `P=${MOVED}\npython3 - "$P" <<'EOF'\nEOF` })
+}
 
-  const band = await $.ui.mount({ plugin: 'plan-progress', surface: 'desktop', component: 'AbovePrompt', props: PROPS })
-  expect(await band.find({ text: /✓.*Add ordering_user tag/ })).toBeDefined()
+const mountBand = ($: any) =>
+  $.ui.mount({ plugin: 'plan-progress', surface: 'desktop', component: 'AbovePrompt', props: PROPS })
+
+test('a bound plan moved to another checkout is followed to its new path', async ($, on) => {
+  const files = new Set([PLAN_PATH])
+  await boundWith($, on, files)
+  files.delete(PLAN_PATH)
+  files.add(OTHER)
+  await $.tool.call({ tool: 'Bash', command: `mkdir -p /main/.scratch/metrics/plans && mv .scratch/metrics/plans/metrics-plan.md /main/.scratch/metrics/plans/` })
+  await $.tool.call({ tool: 'Bash', command: `P=${OTHER}\npython3 - "$P" <<'EOF'\nEOF` })
+
+  expect(await (await mountBand($)).find({ text: /✓.*Add ordering_user tag/ })).toBeDefined()
+})
+
+test('a same-named plan in another worktree does not take over the band', async ($, on) => {
+  await boundWith($, on, new Set([PLAN_PATH, OTHER]))
+  await $.tool.call({ tool: 'Read', file_path: OTHER })
+  await $.tool.call({ tool: 'Edit', file_path: OTHER, old_string: '(pending)', new_string: '(completed)' })
+
+  const band = await mountBand($)
+  expect(await band.find({ text: /▶.*Add ordering_user tag/ })).toBeDefined()
+  expect(await band.find({ text: /✓.*Add ordering_user tag/ })).toBeUndefined()
+})
+
+test('a plan path the shell would expand does not take the band off the real plan', async ($, on) => {
+  const clock = mock.clock(on, { now: 1_000 })
+  let mtimeMs = 1
+  let first = 'pending'
+  on('session.start', async (_$, e) => ({ cwd: e.cwd }))
+  on('ui.render', async () => ({ type: 'Box', props: {}, children: [] }))
+  on('fs.read', async (_$, e) => {
+    if (e.path !== PLAN_PATH) throw new Error('ENOENT')
+
+    return { value: plan(first) }
+  })
+  on('fs.stat', async (_$, e) => {
+    if (e.path !== PLAN_PATH) throw new Error('ENOENT')
+
+    return { value: { mtimeMs, size: 1, isFile: true, isDirectory: false } }
+  })
+  on('session.cwd', async () => ({ value: '/repo' }))
+  on('prompt.submit', async (_$, e) => ({ text: e.text }))
+  on('tool.call', async () => ({ result: { stdout: '', stderr: '', interrupted: false } }))
+
+  // Starting the session sets up the poll that a subagent's edit depends on.
+  await $.session.start({ cwd: '/repo', surface: null, isInteractive: false })
+  await $.tool.call({ tool: 'Read', file_path: PLAN_PATH })
+  await $.prompt.submit(TYPED_IMPLEMENT)
+  // `/repo/$WT/...` is no real file; then a subagent finishes the task, which only the poll sees.
+  await $.tool.call({ tool: 'Bash', command: `python3 - "$WT/.scratch/metrics/plans/metrics-plan.md" <<'EOF'\nEOF` })
+  first = 'completed'
+  mtimeMs = 2
+  await clock.advance(3_000)
+
+  expect(await (await mountBand($)).find({ text: /✓.*Add ordering_user tag/ })).toBeDefined()
 })
 
 test('implement through the Skill tool binds the plan in its args', async ($, on) => {
