@@ -458,10 +458,13 @@ plan template, so that format now has a consumer outside the skills.
 the installed 1.3.1 `implement` accepted only the main worktree's `.scratch/`,
 so a session moved its plan with `mv` instead of asking. `9c3f600` widened
 `implement` on main, but no release followed, so installed plugins kept the old
-rule. `to-spec`, `to-plan`, `implement`, and `implement-spec` now all locate the
-current branch and the worktree it is checked out in first, and keep the spec,
-plans, and run record there; `implement` accepts a plan in another worktree only
-once it names this worktree, and never moves or copies one (divergences 4 and
-6). The fork's release workflow has never run, so its own fixes do not change
+rule. `to-spec`, `to-tickets` (local files), `to-plan`, `implement`, and
+`implement-spec` now all locate the current branch and the worktree it is
+checked out in first, and keep the spec, local tickets, plans, and run record
+there; `implement` accepts a plan in another worktree only once it names this
+worktree, asks before rebinding a plan whose workspace or branch differs (as
+plans written before this rule may), and never moves or copies one (divergences
+4 and 6). `implement-spec` fixes its orchestrating worktree at the start of a
+run, records its path, and resumes from it. The fork's release workflow has never run, so its own fixes do not change
 the version; the plugin version was bumped by hand to `1.3.2` so installed
 copies update. Reconcile it with upstream's next release on integration.

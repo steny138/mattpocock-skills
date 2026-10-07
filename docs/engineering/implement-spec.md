@@ -36,7 +36,7 @@ Each implementer then:
 3. records its final verification, leaving the review to the end of the run,
 4. merges the integration branch tip into its own branch before reporting done, so landing it is a fast-forward.
 
-The orchestrator keeps a run record at `.scratch/<feature>/implement-spec.md` with the integration branch, each ticket's worktree and status, and a `Resume Here`, so an interrupted run can be picked up again. When everything has merged, it runs one `code-review` over the integration branch and records the outcome in every plan. The run ends there: it does not push, open a pull request, or close tickets.
+The orchestrator keeps a run record at `.scratch/<feature>/implement-spec.md` in the orchestrating worktree, with that worktree's path, the integration branch, each ticket's worktree and status, and a `Resume Here`, so an interrupted run can be picked up again from that worktree. When everything has merged, it runs one `code-review` over the integration branch and records the outcome in every plan. The run ends there: it does not push, open a pull request, or close tickets.
 
 ## Common questions
 
