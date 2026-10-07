@@ -1,5 +1,13 @@
 # mattpocock-skills
 
+## 1.3.2
+
+### Patch Changes
+
+- [#10](https://github.com/steny138/mattpocock-skills/pull/10) [`3eb38d7`](https://github.com/steny138/mattpocock-skills/commit/3eb38d7f5a60ea64cdb9815533ab5e4ea70d83bd) - `to-spec`, `to-tickets` (local files), `to-plan`, `implement`, and `implement-spec` now locate the current branch and the worktree it is checked out in first, and keep the spec, local tickets, plans, and run record there. Before this, `to-plan` wrote into a linked worktree while `implement` accepted only the main worktree's `.scratch/`, so a session could move its plan instead of asking. `implement` never moves or copies a plan, and asks before rebinding one whose workspace or branch differs, as plans written before this release may. `implement-spec` fixes its orchestrating worktree at the start of a run, records its path, and resumes from it. This release also ships `9c3f600`, which first let `implement` accept plans in the current worktree.
+
+- [#10](https://github.com/steny138/mattpocock-skills/pull/10) [`16927dd`](https://github.com/steny138/mattpocock-skills/commit/16927ddf0217d55b005b4c21da205cf59c1e5f68) - `plan-progress` mod: a plan moved after `/implement` bound it is now followed to its new path, so the band reaches completed instead of freezing on the old path. It follows only a real move (the bound file is gone and the new one exists), so a same-named plan in another worktree or an unexpanded shell path never takes over the band. The mod's version now matches the plugin's, `1.3.2`.
+
 ## 1.3.1
 
 ### Patch Changes

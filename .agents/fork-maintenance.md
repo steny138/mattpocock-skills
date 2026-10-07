@@ -467,4 +467,6 @@ plans written before this rule may), and never moves or copies one (divergences
 4 and 6). `implement-spec` fixes its orchestrating worktree at the start of a
 run, records its path, and resumes from it. The fork's release workflow has never run, so its own fixes do not change
 the version; the plugin version was bumped by hand to `1.3.2` so installed
-copies update. Reconcile it with upstream's next release on integration.
+copies update, with a hand-written `CHANGELOG.md` entry. The `plan-progress` mod
+moved from `0.1.6` to the same `1.3.2` so that entry covers its fix too.
+Reconcile both with upstream's next release on integration.
