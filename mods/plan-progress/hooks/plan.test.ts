@@ -60,6 +60,21 @@ test('parsePlan reads the execution state and each task', async () => {
   expect(currentIndex(parsePlan(PLAN.replace(/\((in-progress|pending)\)/g, '(completed)')))).toBe(3)
 })
 
+test('parsePlan reads a status in full-width parentheses, as a plan written in Chinese may have it', async () => {
+  const plan = parsePlan('### Task 1: push dev 防護 hook（completed）\n\n### Task 2: 專案層權限（in-progress）\n')
+  expect(plan.tasks.map(t => t.status)).toEqual(['completed', 'in-progress'])
+  expect(plan.tasks[0]?.title).toBe('push dev 防護 hook')
+  expect(parsePlan('### Task 1: a (blocked）\n').tasks.map(t => t.status)).toEqual(['blocked'])
+})
+
+test('parsePlan reads the status before a note an agent appended inside the parentheses', async () => {
+  const plan = parsePlan(
+    '### Task 8: 補 hook 的繞過寫法（completed，review 修正，使用者已核准）\n\n### Task 9: Retry on timeout (in-progress, waiting on CI)\n',
+  )
+  expect(plan.tasks.map(t => t.status)).toEqual(['completed', 'in-progress'])
+  expect(plan.tasks[0]?.title).toBe('補 hook 的繞過寫法')
+})
+
 test('advance times the task that just completed', async () => {
   const start: Bound = {
     path: 'p',
