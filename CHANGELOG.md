@@ -1,5 +1,11 @@
 # mattpocock-skills
 
+## 1.3.4
+
+### Patch Changes
+
+- `plan-progress` mod: task headings with the status in full-width parentheses (`### Task 1: 專案層權限（pending）`, as a plan written in Chinese may have them) or with a note after the status (`（completed，review 修正）`) are now parsed. Before this, such a plan bound with zero tasks, or silently dropped the annotated ones, and the band showed only the cat and the finish node. `to-plan` now also requires the bare status in ASCII parentheses whatever the plan's language. The plugin and the mod both move to `1.3.4`.
+
 ## 1.3.2
 
 ### Patch Changes

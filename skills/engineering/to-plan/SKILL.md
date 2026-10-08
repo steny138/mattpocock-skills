@@ -117,6 +117,8 @@ Use this structure:
 Plan not started. Begin with Task 1, first unchecked step.
 ```
 
+Keep each task heading exactly `### Task <n>: <title> (<status>)`, with `<status>` one of `pending`, `in-progress`, `completed`, or `blocked` inside ASCII parentheses, even when the plan is written in another language: `(pending)`, never `（pending）`. Tools that track `/implement` read task progress from this line.
+
 Prefer vertical tracer-bullet tasks. Each task must be independently verifiable and committable. For behavior changes, call the Skill tool with `tdd` and order the slices so each task can enter its loop against behavior genuinely missing from the state left by the previous task. If it cannot, combine or move the slice rather than planning artificial sabotage.
 
 Do not repeat requirements from a workspace-readable source. Point to it and include only the implementation detail needed to execute reliably.

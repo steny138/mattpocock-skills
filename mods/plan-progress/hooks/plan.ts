@@ -27,7 +27,9 @@ export const parsePlan = (text: string): PlanSummary => {
   const execution = /\*\*Execution:\*\*\s*([\w-]+)/.exec(text)?.[1] ?? ''
   const status = (PLAN_STATUSES as readonly string[]).includes(execution) ? (execution as PlanStatus) : 'not-started'
 
-  const tasks: Task[] = [...text.matchAll(/^### Task \d+:\s*(.*?)\s*\(([\w-]+)\)\s*$/gm)].map(match => {
+  // A plan written in Chinese may wrap the status in full-width parentheses, and an agent may append a note after
+  // it: `（completed，review 修正）`. Only the leading status word counts.
+  const tasks: Task[] = [...text.matchAll(/^### Task \d+:\s*(.*?)\s*[(（]([\w-]+)[^)）]*[)）]\s*$/gm)].map(match => {
     const raw = match[2] ?? 'pending'
     const taskStatus = (TASK_STATUSES as readonly string[]).includes(raw) ? (raw as TaskStatus) : 'pending'
 
