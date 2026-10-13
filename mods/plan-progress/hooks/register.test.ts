@@ -236,3 +236,11 @@ test('a blocked task retains both focus titles with the blocked prefix', async (
   expect(await band.find({ text: /⛔ 0s 移除 Config 驗證$/ })).toBeDefined()
   expect(await band.find({ text: '補預設 CONTEXT.md 說明' })).toBeDefined()
 })
+
+test('short titles retain every equal-width task without folded counts', async ($, on) => {
+  const band = await focusBand($, on, 0, 'in-progress', ['Read', 'Build', 'Ship'], 100)
+  expect(await band.find({ text: /▶ 0s Read$/ })).toBeDefined()
+  expect(await band.find({ text: 'Build' })).toBeDefined()
+  expect(await band.find({ text: 'Ship' })).toBeDefined()
+  expect(await band.find({ text: /^[✓+]\d+$/ })).toBeUndefined()
+})

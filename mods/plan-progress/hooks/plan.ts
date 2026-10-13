@@ -82,14 +82,27 @@ export type Layout = {
 const MAX_STEP = 40
 const MIN_STEP = 8
 
-/** Gives the current and next tasks equal space while retaining every folded node. */
+/** Uses equal cells when titles fit, focuses crowded plans, and windows when focus cannot fit. */
 export const layout = (titles: readonly string[], current: number, columns: number): Layout => {
   const count = titles.length
   if (count === 0) return { widths: [], from: 0, to: 0, cutLeft: false, cutRight: false, leftFolded: 0, rightFolded: 0, mode: 'equal' }
+  const fit = Math.min(MAX_STEP, Math.floor(columns / count))
+  if (fit >= MIN_STEP && titles.every(title => displayWidth(title) + 9 <= fit)) {
+    return { widths: titles.map(() => fit), from: 0, to: count, cutLeft: false, cutRight: false, leftFolded: 0, rightFolded: 0, mode: 'equal' }
+  }
   const focusCount = Math.min(2, count)
   const leftFolded = Math.max(0, Math.min(current, count - focusCount))
   const rightFolded = count - leftFolded - focusCount
   const focusWidth = Math.min(MAX_STEP, Math.floor((columns - (leftFolded + rightFolded) * 2) / focusCount))
+
+  if (focusWidth < MIN_STEP) {
+    const visible = Math.max(1, Math.floor(columns / MIN_STEP))
+    let from = Math.max(0, Math.min(current, count - 1) - Math.floor(visible / 2))
+    const to = Math.min(count, from + visible)
+    from = Math.max(0, to - visible)
+
+    return { widths: titles.slice(from, to).map(() => MIN_STEP), from, to, cutLeft: from > 0, cutRight: to < count, leftFolded: 0, rightFolded: 0, mode: 'window' }
+  }
 
   return {
     widths: titles.map((_, i) => i < leftFolded || i >= leftFolded + focusCount ? 2 : focusWidth),
