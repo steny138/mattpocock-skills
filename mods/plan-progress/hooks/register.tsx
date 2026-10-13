@@ -7,9 +7,11 @@ import {
   brief,
   currentIndex,
   displayWidth,
+  foldedAt,
   isImplementCommand,
   isImplementSkill,
   layout,
+  offsetBefore,
   parsePlan,
   planId,
   planPathIn,
@@ -175,7 +177,8 @@ export const register: Register = on => {
           ? { color: accent, dim: false }
           : { color: 'text', dim: true }
 
-    const catLeft = Math.max(0, Math.min(columns - CAT_COLUMNS, grid.widths.slice(0, Math.max(0, Math.min(current, tasks.length - 1) - grid.from)).reduce((sum, width) => sum + width, 0)))
+    const currentOffset = offsetBefore(grid, Math.min(current, tasks.length - 1))
+    const catLeft = Math.max(0, Math.min(columns - CAT_COLUMNS, currentOffset))
 
     // The cat is a Raster, a terminal-only element: elsewhere the band draws the stepper alone.
     let cat = null
@@ -192,7 +195,7 @@ export const register: Register = on => {
       <Box flexDirection="column" width={columns}>
         {cat}
         <Text wrap="truncate-end">
-          {grid.cutLeft ? <Text dimColor>… </Text> : null}
+          {grid.mode === 'window' && grid.cutLeft ? <Text dimColor>… </Text> : null}
           {shown.map((task, i) => {
             const node = nodeOf(grid.from + i)
             const isDone = task.status === 'completed' || mood === 'done'
@@ -211,18 +214,24 @@ export const register: Register = on => {
           <Text color={nodeOf(grid.to).color} dimColor={nodeOf(grid.to).dim}>
             {nodeOf(grid.to).glyph}
           </Text>
-          {grid.cutRight ? <Text dimColor> …</Text> : null}
+          {grid.mode === 'window' && grid.cutRight ? <Text dimColor> …</Text> : null}
         </Text>
         <Box>
-          {grid.cutLeft ? <Box width={2} /> : null}
+          {grid.mode === 'window' && grid.cutLeft ? <Box width={2} /> : null}
           {shown.map((task, i) => {
-            if (grid.mode === 'focus' && i < grid.leftFolded) {
-              return i === 0 ? <Box width={grid.widths.slice(0, grid.leftFolded).reduce((sum, width) => sum + width, 0)}><Text color="success">{`✓${grid.leftFolded}`}</Text></Box> : null
-            }
-            if (grid.mode === 'focus' && i >= shown.length - grid.rightFolded) {
-              return i === shown.length - grid.rightFolded ? <Box width={grid.widths.slice(shown.length - grid.rightFolded).reduce((sum, width) => sum + width, 0)}><Text dimColor>{`+${grid.rightFolded}`}</Text></Box> : null
-            }
             const index = grid.from + i
+            const folded = foldedAt(grid, index)
+            if (folded !== null) {
+              if (index !== folded.from) return null
+
+              return (
+                <Box width={folded.width}>
+                  <Text color={folded.side === 'left' ? 'success' : undefined} dimColor={folded.side === 'right'}>
+                    {`${folded.side === 'left' ? '✓' : '+'}${folded.count}`}
+                  </Text>
+                </Box>
+              )
+            }
             const label = labelOf(task, index)
             const seconds = b.durations[index]
             // The mark and time lead the title: "✓ 2m Add session model", "▶ 20m Expose logout endpoint".

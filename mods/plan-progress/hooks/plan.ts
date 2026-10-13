@@ -67,23 +67,56 @@ export const brief = (seconds: number): string => {
   return h > 0 ? `${h}h ${m}m` : `${m}m`
 }
 
-export type Layout = {
+type Viewport = {
   /** Terminal columns for each task in view. */
   widths: number[]
   /** First task index included in the track. */
   from: number
   /** Exclusive end of the tasks included in the track. */
   to: number
-  /** Whether the scrolling window omits earlier tasks. */
-  cutLeft: boolean
-  /** Whether the scrolling window omits later tasks. */
-  cutRight: boolean
-  /** Completed tasks collapsed before the focus pair. */
-  leftFolded: number
-  /** Remaining tasks collapsed after the focus pair. */
-  rightFolded: number
-  /** Equal cells, a focus pair, or a scrolling window. */
-  mode: 'equal' | 'focus' | 'window'
+}
+
+export type Layout = Viewport & (
+  | {
+    /** Equal cells for every task. */
+    mode: 'equal'
+  }
+  | {
+    /** A focus pair with collapsed nodes on either side. */
+    mode: 'focus'
+    /** Completed tasks collapsed before the focus pair. */
+    leftFolded: number
+    /** Remaining tasks collapsed after the focus pair. */
+    rightFolded: number
+  }
+  | {
+    /** A scrolling subset of the tasks. */
+    mode: 'window'
+    /** Whether the scrolling window omits earlier tasks. */
+    cutLeft: boolean
+    /** Whether the scrolling window omits later tasks. */
+    cutRight: boolean
+  }
+)
+
+/** Equal cells across the full plan, including an empty plan. */
+const equalLayout = (count: number, width: number): Layout => ({
+  mode: 'equal', widths: Array(count).fill(width), from: 0, to: count,
+})
+
+/** Horizontal offset of a task boundary within the visible track. */
+export const offsetBefore = (grid: Layout, index: number): number =>
+  grid.widths.slice(0, Math.max(0, index - grid.from)).reduce((sum, width) => sum + width, 0)
+
+/** The collapsed region containing a task, or null for an expanded task. */
+export const foldedAt = (grid: Layout, index: number) => {
+  if (grid.mode !== 'focus') return null
+  const side = index < grid.leftFolded ? 'left' : index >= grid.to - grid.rightFolded ? 'right' : null
+  if (side === null) return null
+  const from = side === 'left' ? grid.from : grid.to - grid.rightFolded
+  const to = side === 'left' ? grid.leftFolded : grid.to
+
+  return { side, from, count: to - from, width: offsetBefore(grid, to) - offsetBefore(grid, from) }
 }
 
 /** Largest cell width in the existing equal and focus layouts. */
@@ -98,11 +131,11 @@ const FOLDED_STEP = 2
 /** Uses equal cells when titles fit, focuses crowded plans, and windows when focus cannot fit. */
 export const layout = (titles: readonly string[], current: number, columns: number): Layout => {
   const count = titles.length
-  if (count === 0) return { widths: [], from: 0, to: 0, cutLeft: false, cutRight: false, leftFolded: 0, rightFolded: 0, mode: 'equal' }
+  if (count === 0) return equalLayout(0, 0)
   const available = Math.floor(columns / count)
   const fit = Math.min(MAX_STEP, available)
   if (fit >= MIN_STEP && titles.every(title => displayWidth(title) + LABEL_RESERVE <= available)) {
-    return { widths: titles.map(() => fit), from: 0, to: count, cutLeft: false, cutRight: false, leftFolded: 0, rightFolded: 0, mode: 'equal' }
+    return equalLayout(count, fit)
   }
   const focusCount = Math.min(2, count)
   const leftFolded = Math.max(0, Math.min(current, count - focusCount))
@@ -117,17 +150,18 @@ export const layout = (titles: readonly string[], current: number, columns: numb
     const to = Math.min(count, from + visible)
     from = Math.max(0, to - visible)
 
-    return { widths: titles.slice(from, to).map(() => MIN_STEP), from, to, cutLeft: from > 0, cutRight: to < count, leftFolded: 0, rightFolded: 0, mode: 'window' }
+    return { widths: titles.slice(from, to).map(() => MIN_STEP), from, to, cutLeft: from > 0, cutRight: to < count, mode: 'window' }
   }
 
   return {
-    widths: titles.map((_, i) => {
-      if (i < leftFolded) return i === leftFolded - 1 ? leftWidth - (leftFolded - 1) * FOLDED_STEP : FOLDED_STEP
-      if (i >= leftFolded + focusCount) return i === count - 1 ? rightWidth - (rightFolded - 1) * FOLDED_STEP : FOLDED_STEP
-
-      return focusWidth
-    }),
-    from: 0, to: count, cutLeft: false, cutRight: false, leftFolded, rightFolded, mode: 'focus',
+    mode: 'focus', from: 0, to: count, leftFolded, rightFolded,
+    widths: [
+      ...Array(Math.max(0, leftFolded - 1)).fill(FOLDED_STEP),
+      ...(leftFolded === 0 ? [] : [leftWidth - (leftFolded - 1) * FOLDED_STEP]),
+      ...Array(focusCount).fill(focusWidth),
+      ...Array(Math.max(0, rightFolded - 1)).fill(FOLDED_STEP),
+      ...(rightFolded === 0 ? [] : [rightWidth - (rightFolded - 1) * FOLDED_STEP]),
+    ],
   }
 }
 

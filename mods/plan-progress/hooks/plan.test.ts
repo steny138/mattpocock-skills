@@ -100,9 +100,9 @@ test('brief formats a duration the way the band shows it', async () => {
 })
 
 test('focus layout splits space equally and keeps folded nodes', async () => {
-  expect(layout(['全部空桌時段計算', 'b', 'c', 'd', 'e'], 1, 100)).toEqual({ widths: [3, 40, 40, 2, 2], from: 0, to: 5, cutLeft: false, cutRight: false, leftFolded: 1, rightFolded: 2, mode: 'focus' })
-  expect(layout(['全部空桌時段計算與預約桌位配置驗證', 'b', 'c'], 0, 100)).toEqual({ widths: [40, 40, 3], from: 0, to: 3, cutLeft: false, cutRight: false, leftFolded: 0, rightFolded: 1, mode: 'focus' })
-  expect(layout(['全部空桌時段計算', 'b', 'c', 'd', 'e'], 1, 50)).toEqual({ widths: [3, 21, 21, 2, 2], from: 0, to: 5, cutLeft: false, cutRight: false, leftFolded: 1, rightFolded: 2, mode: 'focus' })
+  expect(layout(['全部空桌時段計算', 'b', 'c', 'd', 'e'], 1, 100)).toEqual({ widths: [3, 40, 40, 2, 2], from: 0, to: 5, leftFolded: 1, rightFolded: 2, mode: 'focus' })
+  expect(layout(['全部空桌時段計算與預約桌位配置驗證', 'b', 'c'], 0, 100)).toEqual({ widths: [40, 40, 3], from: 0, to: 3, leftFolded: 0, rightFolded: 1, mode: 'focus' })
+  expect(layout(['全部空桌時段計算', 'b', 'c', 'd', 'e'], 1, 50)).toEqual({ widths: [3, 21, 21, 2, 2], from: 0, to: 5, leftFolded: 1, rightFolded: 2, mode: 'focus' })
 })
 
 test('Chinese labels truncate within terminal columns', async () => {
@@ -128,14 +128,14 @@ test('labels fitting the exact prefix and spacing boundary keep equal cells', as
 })
 
 test('too little focus space falls back to the original scrolling window', async () => {
-  expect(layout(Array(12).fill('中文長標題'), 7, 34)).toEqual({ widths: [8, 8, 8, 8], from: 5, to: 9, cutLeft: true, cutRight: true, leftFolded: 0, rightFolded: 0, mode: 'window' })
-  expect(layout(Array(12).fill('中文長標題'), 11, 34)).toEqual({ widths: [8, 8, 8, 8], from: 8, to: 12, cutLeft: true, cutRight: false, leftFolded: 0, rightFolded: 0, mode: 'window' })
+  expect(layout(Array(12).fill('中文長標題'), 7, 34)).toEqual({ widths: [8, 8, 8, 8], from: 5, to: 9, cutLeft: true, cutRight: true, mode: 'window' })
+  expect(layout(Array(12).fill('中文長標題'), 11, 34)).toEqual({ widths: [8, 8, 8, 8], from: 8, to: 12, cutLeft: true, cutRight: false, mode: 'window' })
 })
 
 test('forty columns still fit two focus cells above the scrolling threshold', async () => {
-  expect(layout(Array(12).fill('中文長標題'), 7, 40)).toEqual({ widths: [2, 2, 2, 2, 2, 2, 2, 10, 10, 2, 2, 2], from: 0, to: 12, cutLeft: false, cutRight: false, leftFolded: 7, rightFolded: 3, mode: 'focus' })
+  expect(layout(Array(12).fill('中文長標題'), 7, 40)).toEqual({ widths: [2, 2, 2, 2, 2, 2, 2, 10, 10, 2, 2, 2], from: 0, to: 12, leftFolded: 7, rightFolded: 3, mode: 'focus' })
 })
 
 test('a wide band keeps three titles equal before applying the maximum cell width', async () => {
-  expect(layout(['全部空桌時段計算與預約桌位配置驗證a', 'b', 'c'], 0, 200)).toEqual({ widths: [40, 40, 40], from: 0, to: 3, cutLeft: false, cutRight: false, leftFolded: 0, rightFolded: 0, mode: 'equal' })
+  expect(layout(['全部空桌時段計算與預約桌位配置驗證a', 'b', 'c'], 0, 200)).toEqual({ widths: [40, 40, 40], from: 0, to: 3, mode: 'equal' })
 })
