@@ -86,14 +86,17 @@ const MIN_STEP = 8
 export const layout = (titles: readonly string[], current: number, columns: number): Layout => {
   const count = titles.length
   if (count === 0) return { widths: [], from: 0, to: 0, cutLeft: false, cutRight: false, leftFolded: 0, rightFolded: 0, mode: 'equal' }
-  const fit = Math.min(MAX_STEP, Math.floor(columns / count))
-  if (fit >= MIN_STEP && titles.every(title => displayWidth(title) + 9 <= fit)) {
+  const available = Math.floor(columns / count)
+  const fit = Math.min(MAX_STEP, available)
+  if (fit >= MIN_STEP && titles.every(title => displayWidth(title) + 9 <= available)) {
     return { widths: titles.map(() => fit), from: 0, to: count, cutLeft: false, cutRight: false, leftFolded: 0, rightFolded: 0, mode: 'equal' }
   }
   const focusCount = Math.min(2, count)
   const leftFolded = Math.max(0, Math.min(current, count - focusCount))
   const rightFolded = count - leftFolded - focusCount
-  const focusWidth = Math.min(MAX_STEP, Math.floor((columns - (leftFolded + rightFolded) * 2) / focusCount))
+  const leftWidth = leftFolded === 0 ? 0 : Math.max(leftFolded * 2, displayWidth(`✓${leftFolded}`) + 1)
+  const rightWidth = rightFolded === 0 ? 0 : Math.max(rightFolded * 2, displayWidth(`+${rightFolded}`) + 1)
+  const focusWidth = Math.min(MAX_STEP, Math.floor((columns - leftWidth - rightWidth) / focusCount))
 
   if (focusWidth < MIN_STEP) {
     const visible = Math.max(1, Math.floor(columns / MIN_STEP))
@@ -105,7 +108,12 @@ export const layout = (titles: readonly string[], current: number, columns: numb
   }
 
   return {
-    widths: titles.map((_, i) => i < leftFolded || i >= leftFolded + focusCount ? 2 : focusWidth),
+    widths: titles.map((_, i) => {
+      if (i < leftFolded) return i === leftFolded - 1 ? leftWidth - (leftFolded - 1) * 2 : 2
+      if (i >= leftFolded + focusCount) return i === count - 1 ? rightWidth - (rightFolded - 1) * 2 : 2
+
+      return focusWidth
+    }),
     from: 0, to: count, cutLeft: false, cutRight: false, leftFolded, rightFolded, mode: 'focus',
   }
 }

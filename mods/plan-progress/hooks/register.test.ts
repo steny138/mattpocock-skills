@@ -1,5 +1,7 @@
 import { expect, mock, test } from 'claude-code/testing'
 
+import { displayWidth } from './plan'
+
 const PLAN_PATH = '/repo/.scratch/metrics/plans/metrics-plan.md'
 
 const plan = (first: string) => `# Metrics Implementation Plan
@@ -243,4 +245,40 @@ test('short titles retain every equal-width task without folded counts', async (
   expect(await band.find({ text: 'Build' })).toBeDefined()
   expect(await band.find({ text: 'Ship' })).toBeDefined()
   expect(await band.find({ text: /^[✓+]\d+$/ })).toBeUndefined()
+})
+
+/** Checks the mounted label row's allocated gaps, without claiming surface paint. */
+const expectLabelGaps = async (band: any, columns: number) => {
+  const tree = await band.drawn()
+  const row = tree.children[tree.children.length - 1]
+  let total = 0
+  for (const cell of row.children) {
+    const text = cell.children[0].children.join('')
+    expect(await band.find({ text })).toBeDefined()
+    expect(cell.props.width - displayWidth(text)).toBeGreaterThanOrEqual(1)
+    total += cell.props.width
+  }
+  expect(total).toBeLessThanOrEqual(columns)
+}
+
+test('single folded markers leave a gap beside the focus titles', async ($, on) => {
+  const band = await focusBand($, on, 1, 'in-progress', FOCUS_TITLES.slice(0, 4), 60)
+  expect(await band.find({ text: '✓1' })).toBeDefined()
+  expect(await band.find({ text: '+1' })).toBeDefined()
+  await expectLabelGaps(band, 60)
+})
+
+test('adjacent Chinese titles retain gaps in equal cells', async ($, on) => {
+  const band = await focusBand($, on, 0, 'in-progress', ['讀取設定', '建立資料', '驗證結果'], 100)
+  expect(await band.find({ text: /▶ 0s 讀取設定$/ })).toBeDefined()
+  expect(await band.find({ text: '建立資料' })).toBeDefined()
+  expect(await band.find({ text: '驗證結果' })).toBeDefined()
+  await expectLabelGaps(band, 100)
+})
+
+test('adjacent Chinese focus titles retain gaps', async ($, on) => {
+  const band = await focusBand($, on)
+  expect(await band.find({ text: /▶ 0s 移除 Config 驗證$/ })).toBeDefined()
+  expect(await band.find({ text: '補預設 CONTEXT.md 說明' })).toBeDefined()
+  await expectLabelGaps(band, 200)
 })

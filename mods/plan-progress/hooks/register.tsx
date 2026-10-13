@@ -217,10 +217,10 @@ export const register: Register = on => {
           {grid.cutLeft ? <Box width={2} /> : null}
           {shown.map((task, i) => {
             if (grid.mode === 'focus' && i < grid.leftFolded) {
-              return i === 0 ? <Box width={grid.leftFolded * 2}><Text color="success">{`✓${grid.leftFolded}`}</Text></Box> : null
+              return i === 0 ? <Box width={grid.widths.slice(0, grid.leftFolded).reduce((sum, width) => sum + width, 0)}><Text color="success">{`✓${grid.leftFolded}`}</Text></Box> : null
             }
             if (grid.mode === 'focus' && i >= shown.length - grid.rightFolded) {
-              return i === shown.length - grid.rightFolded ? <Box width={grid.rightFolded * 2}><Text dimColor>{`+${grid.rightFolded}`}</Text></Box> : null
+              return i === shown.length - grid.rightFolded ? <Box width={grid.widths.slice(shown.length - grid.rightFolded).reduce((sum, width) => sum + width, 0)}><Text dimColor>{`+${grid.rightFolded}`}</Text></Box> : null
             }
             const index = grid.from + i
             const label = labelOf(task, index)
