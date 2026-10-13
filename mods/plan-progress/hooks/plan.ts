@@ -95,5 +95,36 @@ export const layout = (count: number, current: number, columns: number): Layout 
   return { step: MIN_STEP, from, to, cutLeft: from > 0, cutRight: to < count }
 }
 
-export const truncate = (text: string, width: number): string =>
-  text.length <= width ? text : `${text.slice(0, Math.max(0, width - 1))}…`
+/** Terminal columns occupied by wide East Asian characters and emoji. */
+export const displayWidth = (text: string): number => {
+  let width = 0
+  for (const character of text) {
+    const code = character.codePointAt(0)!
+    width += /\p{Emoji_Presentation}/u.test(character) || code >= 0x1100 && (
+      code <= 0x115f || code === 0x2329 || code === 0x232a ||
+      (code >= 0x2e80 && code <= 0xa4cf && code !== 0x303f) ||
+      (code >= 0xac00 && code <= 0xd7a3) || (code >= 0xf900 && code <= 0xfaff) ||
+      (code >= 0xfe10 && code <= 0xfe19) || (code >= 0xfe30 && code <= 0xfe6f) ||
+      (code >= 0xff00 && code <= 0xff60) || (code >= 0xffe0 && code <= 0xffe6) ||
+      (code >= 0x20000 && code <= 0x3fffd)
+    ) ? 2 : 1
+  }
+
+  return width
+}
+
+/** Truncates to terminal columns, leaving room for the ellipsis. */
+export const truncate = (text: string, width: number): string => {
+  if (width <= 0) return ''
+  if (displayWidth(text) <= width) return text
+  let result = ''
+  let used = 0
+  for (const character of text) {
+    const size = displayWidth(character)
+    if (used + size > width - 1) break
+    result += character
+    used += size
+  }
+
+  return `${result}…`
+}

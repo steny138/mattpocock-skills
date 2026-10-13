@@ -1,7 +1,7 @@
 import { expect, test } from 'claude-code/testing'
 
 import type { Bound } from '../types'
-import { advance, brief, currentIndex, isImplementCommand, isImplementSkill, layout, parsePlan, planId, planPathIn } from './plan'
+import { advance, brief, displayWidth, currentIndex, isImplementCommand, isImplementSkill, layout, parsePlan, planId, planPathIn, truncate } from './plan'
 
 const PLAN = `# Demo Implementation Plan
 
@@ -105,4 +105,21 @@ test('layout spreads steps, shrinks them, then windows around the current task',
   expect(layout(5, 1, 50)).toEqual({ step: 10, from: 0, to: 5, cutLeft: false, cutRight: false })
   expect(layout(12, 7, 40)).toEqual({ step: 8, from: 5, to: 10, cutLeft: true, cutRight: true })
   expect(layout(12, 11, 40)).toEqual({ step: 8, from: 7, to: 12, cutLeft: true, cutRight: false })
+})
+
+test('Chinese labels truncate within terminal columns', async () => {
+  expect(truncate('全部空桌時段計算', 9)).toBe('全部空桌…')
+})
+
+test('mixed labels and exact fits retain their terminal width', async () => {
+  expect(truncate('移除 Config 驗證', 12)).toBe('移除 Config…')
+  expect(truncate('移除 Config 驗證', 16)).toBe('移除 Config 驗證')
+})
+
+test('wide emoji and East Asian text occupy two columns', async () => {
+  expect(displayWidth('ASCII')).toBe(5)
+  expect(displayWidth('中文かな한글Ａ')).toBe(14)
+  expect(displayWidth('移除 Config 驗證')).toBe(16)
+  expect(displayWidth('⛔ blocked')).toBe(10)
+  expect(truncate('⛔ 全部空桌', 8)).toBe('⛔ 全部…')
 })
