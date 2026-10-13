@@ -247,6 +247,12 @@ test('short titles retain every equal-width task without folded counts', async (
   expect(await band.find({ text: /^[✓+]\d+$/ })).toBeUndefined()
 })
 
+test('a wide band shows the full title judged to fit an equal cell', async ($, on) => {
+  const band = await focusBand($, on, 0, 'in-progress', ['全部空桌時段計算與預約桌位配置驗證a', 'Build', 'Ship'], 200)
+  expect(await band.find({ text: '▶ 0s 全部空桌時段計算與預約桌位配置驗證a' })).toBeDefined()
+  expect(await band.find({ text: /…/ })).toBeUndefined()
+})
+
 /** Checks the mounted label row's allocated gaps, without claiming surface paint. */
 const expectLabelGaps = async (band: any, columns: number) => {
   const tree = await band.drawn()

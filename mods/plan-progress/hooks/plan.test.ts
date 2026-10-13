@@ -136,6 +136,6 @@ test('forty columns still fit two focus cells above the scrolling threshold', as
   expect(layout(Array(12).fill('中文長標題'), 7, 40)).toEqual({ widths: [2, 2, 2, 2, 2, 2, 2, 10, 10, 2, 2, 2], from: 0, to: 12, leftFolded: 7, rightFolded: 3, mode: 'focus' })
 })
 
-test('a wide band keeps three titles equal before applying the maximum cell width', async () => {
-  expect(layout(['全部空桌時段計算與預約桌位配置驗證a', 'b', 'c'], 0, 200)).toEqual({ widths: [40, 40, 40], from: 0, to: 3, mode: 'equal' })
+test('a wide band draws equal cells at the available average width', async () => {
+  expect(layout(['全部空桌時段計算與預約桌位配置驗證a', 'b', 'c'], 0, 200)).toEqual({ widths: [66, 66, 66], from: 0, to: 3, mode: 'equal' })
 })

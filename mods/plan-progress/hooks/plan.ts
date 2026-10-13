@@ -109,17 +109,20 @@ export const offsetBefore = (grid: Layout, index: number): number =>
   grid.widths.slice(0, Math.max(0, index - grid.from)).reduce((sum, width) => sum + width, 0)
 
 /** The collapsed region containing a task, or null for an expanded task. */
-export const foldedAt = (grid: Layout, index: number) => {
+export const foldedAt = (grid: Layout, index: number): { side: 'left' | 'right'; from: number; count: number; width: number; label: string } | null => {
   if (grid.mode !== 'focus') return null
   const side = index < grid.leftFolded ? 'left' : index >= grid.to - grid.rightFolded ? 'right' : null
   if (side === null) return null
   const from = side === 'left' ? grid.from : grid.to - grid.rightFolded
   const to = side === 'left' ? grid.leftFolded : grid.to
 
-  return { side, from, count: to - from, width: offsetBefore(grid, to) - offsetBefore(grid, from) }
+  return { side, from, count: to - from, width: offsetBefore(grid, to) - offsetBefore(grid, from), label: foldLabel(side, to - from) }
 }
 
-/** Largest cell width in the existing equal and focus layouts. */
+/** The completed or remaining count shown under a collapsed region. */
+const foldLabel = (side: 'left' | 'right', count: number): string => `${side === 'left' ? '✓' : '+'}${count}`
+
+/** Largest cell width in the focus layout. */
 const MAX_STEP = 40
 /** Smallest focus cell before falling back to a scrolling window. */
 const MIN_STEP = 8
@@ -133,15 +136,14 @@ export const layout = (titles: readonly string[], current: number, columns: numb
   const count = titles.length
   if (count === 0) return equalLayout(0, 0)
   const available = Math.floor(columns / count)
-  const fit = Math.min(MAX_STEP, available)
-  if (fit >= MIN_STEP && titles.every(title => displayWidth(title) + LABEL_RESERVE <= available)) {
-    return equalLayout(count, fit)
+  if (available >= MIN_STEP && titles.every(title => displayWidth(title) + LABEL_RESERVE <= available)) {
+    return equalLayout(count, available)
   }
   const focusCount = Math.min(2, count)
   const leftFolded = Math.max(0, Math.min(current, count - focusCount))
   const rightFolded = count - leftFolded - focusCount
-  const leftWidth = leftFolded === 0 ? 0 : Math.max(leftFolded * FOLDED_STEP, displayWidth(`✓${leftFolded}`) + 1)
-  const rightWidth = rightFolded === 0 ? 0 : Math.max(rightFolded * FOLDED_STEP, displayWidth(`+${rightFolded}`) + 1)
+  const leftWidth = leftFolded === 0 ? 0 : Math.max(leftFolded * FOLDED_STEP, displayWidth(foldLabel('left', leftFolded)) + 1)
+  const rightWidth = rightFolded === 0 ? 0 : Math.max(rightFolded * FOLDED_STEP, displayWidth(foldLabel('right', rightFolded)) + 1)
   const focusWidth = Math.min(MAX_STEP, Math.floor((columns - leftWidth - rightWidth) / focusCount))
 
   if (focusWidth < MIN_STEP) {

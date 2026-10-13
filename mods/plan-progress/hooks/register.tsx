@@ -227,7 +227,7 @@ export const register: Register = on => {
               return (
                 <Box width={folded.width}>
                   <Text color={folded.side === 'left' ? 'success' : undefined} dimColor={folded.side === 'right'}>
-                    {`${folded.side === 'left' ? '✓' : '+'}${folded.count}`}
+                    {folded.label}
                   </Text>
                 </Box>
               )
