@@ -68,31 +68,33 @@ export const brief = (seconds: number): string => {
 }
 
 export type Layout = {
-  /** Width of each step cell. */
-  step: number
-  /** First and one-past-last task index in view. */
+  /** Terminal columns for each task in view. */
+  widths: number[]
   from: number
   to: number
-  /** Whether tasks are cut off before `from` / after `to`. */
   cutLeft: boolean
   cutRight: boolean
+  leftFolded: number
+  rightFolded: number
+  mode: 'equal' | 'focus' | 'window'
 }
 
 const MAX_STEP = 40
 const MIN_STEP = 8
 
-/** Spreads the steps over the width (up to MAX_STEP each), shrinks them to fit, then windows around `current`. */
-export const layout = (count: number, current: number, columns: number): Layout => {
-  if (count === 0) return { step: MAX_STEP, from: 0, to: 0, cutLeft: false, cutRight: false }
-  const fit = Math.floor(columns / count)
-  if (fit >= MIN_STEP) return { step: Math.min(MAX_STEP, fit), from: 0, to: count, cutLeft: false, cutRight: false }
+/** Gives the current and next tasks equal space while retaining every folded node. */
+export const layout = (titles: readonly string[], current: number, columns: number): Layout => {
+  const count = titles.length
+  if (count === 0) return { widths: [], from: 0, to: 0, cutLeft: false, cutRight: false, leftFolded: 0, rightFolded: 0, mode: 'equal' }
+  const focusCount = Math.min(2, count)
+  const leftFolded = Math.max(0, Math.min(current, count - focusCount))
+  const rightFolded = count - leftFolded - focusCount
+  const focusWidth = Math.min(MAX_STEP, Math.floor((columns - (leftFolded + rightFolded) * 2) / focusCount))
 
-  const visible = Math.max(1, Math.floor(columns / MIN_STEP))
-  let from = Math.max(0, Math.min(current, count - 1) - Math.floor(visible / 2))
-  const to = Math.min(count, from + visible)
-  from = Math.max(0, to - visible)
-
-  return { step: MIN_STEP, from, to, cutLeft: from > 0, cutRight: to < count }
+  return {
+    widths: titles.map((_, i) => i < leftFolded || i >= leftFolded + focusCount ? 2 : focusWidth),
+    from: 0, to: count, cutLeft: false, cutRight: false, leftFolded, rightFolded, mode: 'focus',
+  }
 }
 
 /** Terminal columns occupied by wide East Asian characters and emoji. */

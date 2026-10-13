@@ -185,3 +185,54 @@ test('a plan edit with no /implement before it binds nothing', async ($, on) => 
   const band = await $.ui.mount({ plugin: 'plan-progress', surface: 'desktop', component: 'AbovePrompt', props: PROPS })
   expect(await band.find({ text: /Add ordering_user tag/ })).toBeUndefined()
 })
+
+const FOCUS_TITLES = [
+  '全部空桌時段計算', '同步預約桌位設定', '依時段驗證桌位配置', '更新可預約人數限制',
+  '移除 Config 驗證', '補預設 CONTEXT.md 說明', '驗證預約時間邊界', '整理桌位分配測試', '完成預約流程驗證',
+]
+
+/** Mounts the same plan states that the running session reads from disk. */
+const focusBand = async ($: any, on: any, current = 4, status = 'in-progress', titles = FOCUS_TITLES, columns = 200) => {
+  mock.clock(on, { now: 1_000 })
+  on('ui.render', async () => ({ type: 'Box', props: {}, children: [] }))
+  const text = `**Execution:** ${status}\n\n${titles.map((title, i) =>
+    `### Task ${i + 1}: ${title} (${i < current ? 'completed' : i === current ? status : 'pending'})`,
+  ).join('\n\n')}`
+  on('fs.read', async () => ({ value: text }))
+  on('tool.call', async () => ({ result: { success: true } }))
+  await $.tool.call({ tool: 'Skill', skill: 'implement', args: PLAN_PATH })
+
+  return $.ui.mount({ plugin: 'plan-progress', surface: 'desktop', component: 'AbovePrompt', props: { ...PROPS, bodyColumns: columns } })
+}
+
+test('a crowded Chinese plan shows folded counts and both full focus titles', async ($, on) => {
+  const band = await focusBand($, on)
+  expect(await band.find({ text: '✓4' })).toBeDefined()
+  expect(await band.find({ text: '+3' })).toBeDefined()
+  expect(await band.find({ text: /▶ 0s 移除 Config 驗證$/ })).toBeDefined()
+  expect(await band.find({ text: '補預設 CONTEXT.md 說明' })).toBeDefined()
+})
+
+test('the last current task shares focus with its predecessor', async ($, on) => {
+  const band = await focusBand($, on, 8)
+  expect(await band.find({ text: '✓7' })).toBeDefined()
+  expect(await band.find({ text: /✓ 整理桌位分配測試$/ })).toBeDefined()
+  expect(await band.find({ text: /▶ 0s 完成預約流程驗證$/ })).toBeDefined()
+  expect(await band.find({ text: /^\+\d+$/ })).toBeUndefined()
+})
+
+test('a completed plan retains the last two titles with no remaining marker', async ($, on) => {
+  const band = await focusBand($, on, 9, 'completed')
+  expect(await band.find({ text: '✓7' })).toBeDefined()
+  expect(await band.find({ text: /✓ 整理桌位分配測試$/ })).toBeDefined()
+  expect(await band.find({ text: /✓ 完成預約流程驗證$/ })).toBeDefined()
+  expect(await band.find({ text: /^\+\d+$/ })).toBeUndefined()
+})
+
+test('a blocked task retains both focus titles with the blocked prefix', async ($, on) => {
+  const band = await focusBand($, on, 4, 'blocked')
+  expect(await band.find({ text: '✓4' })).toBeDefined()
+  expect(await band.find({ text: '+3' })).toBeDefined()
+  expect(await band.find({ text: /⛔ 0s 移除 Config 驗證$/ })).toBeDefined()
+  expect(await band.find({ text: '補預設 CONTEXT.md 說明' })).toBeDefined()
+})

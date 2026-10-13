@@ -6,6 +6,7 @@ import {
   advance,
   brief,
   currentIndex,
+  displayWidth,
   isImplementCommand,
   isImplementSkill,
   layout,
@@ -155,7 +156,7 @@ export const register: Register = on => {
     const mood = moodOf(b)
     const columns = e.props.bodyColumns
     // One column is kept for the finish node after the last segment.
-    const grid = layout(tasks.length, current, columns - 1)
+    const grid = layout(tasks.map(task => task.title), current, columns - 1)
     const shown = tasks.slice(grid.from, grid.to)
 
     const accent = mood === 'blocked' ? 'error' : mood === 'done' ? 'success' : 'warning'
@@ -174,7 +175,7 @@ export const register: Register = on => {
           ? { color: accent, dim: false }
           : { color: 'text', dim: true }
 
-    const catLeft = Math.max(0, Math.min(columns - CAT_COLUMNS, (Math.min(current, tasks.length - 1) - grid.from) * grid.step))
+    const catLeft = Math.max(0, Math.min(columns - CAT_COLUMNS, grid.widths.slice(0, Math.max(0, Math.min(current, tasks.length - 1) - grid.from)).reduce((sum, width) => sum + width, 0)))
 
     // The cat is a Raster, a terminal-only element: elsewhere the band draws the stepper alone.
     let cat = null
@@ -202,7 +203,7 @@ export const register: Register = on => {
                   {node.glyph}
                 </Text>
                 <Text color={isDone ? 'success' : undefined} dimColor={!isDone}>
-                  {(isDone ? '━' : '─').repeat(grid.step - 1)}
+                  {(isDone ? '━' : '─').repeat(Math.max(0, grid.widths[i]! - displayWidth(node.glyph)))}
                 </Text>
               </Text>
             )
@@ -215,6 +216,12 @@ export const register: Register = on => {
         <Box>
           {grid.cutLeft ? <Box width={2} /> : null}
           {shown.map((task, i) => {
+            if (grid.mode === 'focus' && i < grid.leftFolded) {
+              return i === 0 ? <Box width={grid.leftFolded * 2}><Text color="success">{`✓${grid.leftFolded}`}</Text></Box> : null
+            }
+            if (grid.mode === 'focus' && i >= shown.length - grid.rightFolded) {
+              return i === shown.length - grid.rightFolded ? <Box width={grid.rightFolded * 2}><Text dimColor>{`+${grid.rightFolded}`}</Text></Box> : null
+            }
             const index = grid.from + i
             const label = labelOf(task, index)
             const seconds = b.durations[index]
@@ -227,9 +234,9 @@ export const register: Register = on => {
                   : ''
 
             return (
-              <Box width={grid.step}>
+              <Box width={grid.widths[i]}>
                 <Text color={label.color} dimColor={label.dim} wrap="truncate-end">
-                  {truncate(`${lead}${task.title}`, grid.step - 1)}
+                  {truncate(`${lead}${task.title}`, grid.widths[i]! - 1)}
                 </Text>
               </Box>
             )
