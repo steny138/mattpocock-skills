@@ -1,7 +1,7 @@
 import { expect, test } from 'claude-code/testing'
 
 import type { Bound } from '../types'
-import { advance, brief, currentIndex, isImplementCommand, isImplementSkill, layout, parsePlan, planId, planPathIn } from './plan'
+import { advance, brief, currentIndex, displayWidth, isImplementCommand, isImplementSkill, layout, parsePlan, planId, planPathIn, truncate } from './plan'
 
 const PLAN = `# Demo Implementation Plan
 
@@ -99,10 +99,43 @@ test('brief formats a duration the way the band shows it', async () => {
   expect(brief(3900)).toBe('1h 5m')
 })
 
-test('layout spreads steps, shrinks them, then windows around the current task', async () => {
-  expect(layout(5, 1, 100)).toEqual({ step: 20, from: 0, to: 5, cutLeft: false, cutRight: false })
-  expect(layout(3, 0, 200)).toEqual({ step: 40, from: 0, to: 3, cutLeft: false, cutRight: false })
-  expect(layout(5, 1, 50)).toEqual({ step: 10, from: 0, to: 5, cutLeft: false, cutRight: false })
-  expect(layout(12, 7, 40)).toEqual({ step: 8, from: 5, to: 10, cutLeft: true, cutRight: true })
-  expect(layout(12, 11, 40)).toEqual({ step: 8, from: 7, to: 12, cutLeft: true, cutRight: false })
+test('focus layout splits space equally and keeps folded nodes', async () => {
+  expect(layout(['全部空桌時段計算', 'b', 'c', 'd', 'e'], 1, 100)).toEqual({ widths: [3, 40, 40, 2, 2], from: 0, to: 5, leftFolded: 1, rightFolded: 2, mode: 'focus' })
+  expect(layout(['全部空桌時段計算與預約桌位配置驗證', 'b', 'c'], 0, 100)).toEqual({ widths: [40, 40, 3], from: 0, to: 3, leftFolded: 0, rightFolded: 1, mode: 'focus' })
+  expect(layout(['全部空桌時段計算', 'b', 'c', 'd', 'e'], 1, 50)).toEqual({ widths: [3, 21, 21, 2, 2], from: 0, to: 5, leftFolded: 1, rightFolded: 2, mode: 'focus' })
+})
+
+test('Chinese labels truncate within terminal columns', async () => {
+  expect(truncate('全部空桌時段計算', 9)).toBe('全部空桌…')
+})
+
+test('mixed labels and exact fits retain their terminal width', async () => {
+  expect(truncate('移除 Config 驗證', 12)).toBe('移除 Config…')
+  expect(truncate('移除 Config 驗證', 16)).toBe('移除 Config 驗證')
+})
+
+test('wide emoji and East Asian text occupy two columns', async () => {
+  expect(displayWidth('ASCII')).toBe(5)
+  expect(displayWidth('中文かな한글Ａ')).toBe(14)
+  expect(displayWidth('移除 Config 驗證')).toBe(16)
+  expect(displayWidth('⛔ blocked')).toBe(10)
+  expect(truncate('⛔ 全部空桌', 8)).toBe('⛔ 全部…')
+})
+
+test('labels fitting the exact prefix and spacing boundary keep equal cells', async () => {
+  expect(layout(['中文a', 'b', 'c'], 1, 42).mode).toBe('equal')
+  expect(layout(['中文ab', 'b', 'c'], 1, 42).mode).toBe('focus')
+})
+
+test('too little focus space falls back to the original scrolling window', async () => {
+  expect(layout(Array(12).fill('中文長標題'), 7, 34)).toEqual({ widths: [8, 8, 8, 8], from: 5, to: 9, cutLeft: true, cutRight: true, mode: 'window' })
+  expect(layout(Array(12).fill('中文長標題'), 11, 34)).toEqual({ widths: [8, 8, 8, 8], from: 8, to: 12, cutLeft: true, cutRight: false, mode: 'window' })
+})
+
+test('forty columns still fit two focus cells above the scrolling threshold', async () => {
+  expect(layout(Array(12).fill('中文長標題'), 7, 40)).toEqual({ widths: [2, 2, 2, 2, 2, 2, 2, 10, 10, 2, 2, 2], from: 0, to: 12, leftFolded: 7, rightFolded: 3, mode: 'focus' })
+})
+
+test('a wide band draws equal cells at the available average width', async () => {
+  expect(layout(['全部空桌時段計算與預約桌位配置驗證a', 'b', 'c'], 0, 200)).toEqual({ widths: [66, 66, 66], from: 0, to: 3, mode: 'equal' })
 })

@@ -67,33 +67,136 @@ export const brief = (seconds: number): string => {
   return h > 0 ? `${h}h ${m}m` : `${m}m`
 }
 
-export type Layout = {
-  /** Width of each step cell. */
-  step: number
-  /** First and one-past-last task index in view. */
+type Viewport = {
+  /** Terminal columns for each task in view. */
+  widths: number[]
+  /** First task index included in the track. */
   from: number
+  /** Exclusive end of the tasks included in the track. */
   to: number
-  /** Whether tasks are cut off before `from` / after `to`. */
-  cutLeft: boolean
-  cutRight: boolean
 }
 
+export type Layout = Viewport & (
+  | {
+    /** Equal cells for every task. */
+    mode: 'equal'
+  }
+  | {
+    /** A focus pair with collapsed nodes on either side. */
+    mode: 'focus'
+    /** Completed tasks collapsed before the focus pair. */
+    leftFolded: number
+    /** Remaining tasks collapsed after the focus pair. */
+    rightFolded: number
+  }
+  | {
+    /** A scrolling subset of the tasks. */
+    mode: 'window'
+    /** Whether the scrolling window omits earlier tasks. */
+    cutLeft: boolean
+    /** Whether the scrolling window omits later tasks. */
+    cutRight: boolean
+  }
+)
+
+/** Equal cells across the full plan, including an empty plan. */
+const equalLayout = (count: number, width: number): Layout => ({
+  mode: 'equal', widths: Array(count).fill(width), from: 0, to: count,
+})
+
+/** Horizontal offset of a task boundary within the visible track. */
+export const offsetBefore = (grid: Layout, index: number): number =>
+  grid.widths.slice(0, Math.max(0, index - grid.from)).reduce((sum, width) => sum + width, 0)
+
+/** The collapsed region containing a task, or null for an expanded task. */
+export const foldedAt = (grid: Layout, index: number): { side: 'left' | 'right'; from: number; count: number; width: number; label: string } | null => {
+  if (grid.mode !== 'focus') return null
+  const side = index < grid.leftFolded ? 'left' : index >= grid.to - grid.rightFolded ? 'right' : null
+  if (side === null) return null
+  const from = side === 'left' ? grid.from : grid.to - grid.rightFolded
+  const to = side === 'left' ? grid.leftFolded : grid.to
+
+  return { side, from, count: to - from, width: offsetBefore(grid, to) - offsetBefore(grid, from), label: foldLabel(side, to - from) }
+}
+
+/** The completed or remaining count shown under a collapsed region. */
+const foldLabel = (side: 'left' | 'right', count: number): string => `${side === 'left' ? '✓' : '+'}${count}`
+
+/** Largest cell width in the focus layout. */
 const MAX_STEP = 40
+/** Smallest focus cell before falling back to a scrolling window. */
 const MIN_STEP = 8
+/** Fixed prefix allowance plus one column between titles. */
+const LABEL_RESERVE = 9
+/** A collapsed task's node and connecting line. */
+const FOLDED_STEP = 2
 
-/** Spreads the steps over the width (up to MAX_STEP each), shrinks them to fit, then windows around `current`. */
-export const layout = (count: number, current: number, columns: number): Layout => {
-  if (count === 0) return { step: MAX_STEP, from: 0, to: 0, cutLeft: false, cutRight: false }
-  const fit = Math.floor(columns / count)
-  if (fit >= MIN_STEP) return { step: Math.min(MAX_STEP, fit), from: 0, to: count, cutLeft: false, cutRight: false }
+/** Uses equal cells when titles fit, focuses crowded plans, and windows when focus cannot fit. */
+export const layout = (titles: readonly string[], current: number, columns: number): Layout => {
+  const count = titles.length
+  if (count === 0) return equalLayout(0, 0)
+  const available = Math.floor(columns / count)
+  if (available >= MIN_STEP && titles.every(title => displayWidth(title) + LABEL_RESERVE <= available)) {
+    return equalLayout(count, available)
+  }
+  const focusCount = Math.min(2, count)
+  const leftFolded = Math.max(0, Math.min(current, count - focusCount))
+  const rightFolded = count - leftFolded - focusCount
+  const leftWidth = leftFolded === 0 ? 0 : Math.max(leftFolded * FOLDED_STEP, displayWidth(foldLabel('left', leftFolded)) + 1)
+  const rightWidth = rightFolded === 0 ? 0 : Math.max(rightFolded * FOLDED_STEP, displayWidth(foldLabel('right', rightFolded)) + 1)
+  const focusWidth = Math.min(MAX_STEP, Math.floor((columns - leftWidth - rightWidth) / focusCount))
 
-  const visible = Math.max(1, Math.floor(columns / MIN_STEP))
-  let from = Math.max(0, Math.min(current, count - 1) - Math.floor(visible / 2))
-  const to = Math.min(count, from + visible)
-  from = Math.max(0, to - visible)
+  if (focusWidth < MIN_STEP) {
+    const visible = Math.max(1, Math.floor(columns / MIN_STEP))
+    let from = Math.max(0, Math.min(current, count - 1) - Math.floor(visible / 2))
+    const to = Math.min(count, from + visible)
+    from = Math.max(0, to - visible)
 
-  return { step: MIN_STEP, from, to, cutLeft: from > 0, cutRight: to < count }
+    return { widths: titles.slice(from, to).map(() => MIN_STEP), from, to, cutLeft: from > 0, cutRight: to < count, mode: 'window' }
+  }
+
+  return {
+    mode: 'focus', from: 0, to: count, leftFolded, rightFolded,
+    widths: [
+      ...Array(Math.max(0, leftFolded - 1)).fill(FOLDED_STEP),
+      ...(leftFolded === 0 ? [] : [leftWidth - (leftFolded - 1) * FOLDED_STEP]),
+      ...Array(focusCount).fill(focusWidth),
+      ...Array(Math.max(0, rightFolded - 1)).fill(FOLDED_STEP),
+      ...(rightFolded === 0 ? [] : [rightWidth - (rightFolded - 1) * FOLDED_STEP]),
+    ],
+  }
 }
 
-export const truncate = (text: string, width: number): string =>
-  text.length <= width ? text : `${text.slice(0, Math.max(0, width - 1))}…`
+/** Terminal columns occupied by wide East Asian characters and emoji. */
+export const displayWidth = (text: string): number => {
+  let width = 0
+  for (const character of text) {
+    const code = character.codePointAt(0)!
+    width += /\p{Emoji_Presentation}/u.test(character) || code >= 0x1100 && (
+      code <= 0x115f || code === 0x2329 || code === 0x232a ||
+      (code >= 0x2e80 && code <= 0xa4cf && code !== 0x303f) ||
+      (code >= 0xac00 && code <= 0xd7a3) || (code >= 0xf900 && code <= 0xfaff) ||
+      (code >= 0xfe10 && code <= 0xfe19) || (code >= 0xfe30 && code <= 0xfe6f) ||
+      (code >= 0xff00 && code <= 0xff60) || (code >= 0xffe0 && code <= 0xffe6) ||
+      (code >= 0x20000 && code <= 0x3fffd)
+    ) ? 2 : 1
+  }
+
+  return width
+}
+
+/** Truncates to terminal columns, leaving room for the ellipsis. */
+export const truncate = (text: string, width: number): string => {
+  if (width <= 0) return ''
+  if (displayWidth(text) <= width) return text
+  let result = ''
+  let used = 0
+  for (const character of text) {
+    const size = displayWidth(character)
+    if (used + size > width - 1) break
+    result += character
+    used += size
+  }
+
+  return `${result}…`
+}

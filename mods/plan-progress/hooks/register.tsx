@@ -6,9 +6,12 @@ import {
   advance,
   brief,
   currentIndex,
+  displayWidth,
+  foldedAt,
   isImplementCommand,
   isImplementSkill,
   layout,
+  offsetBefore,
   parsePlan,
   planId,
   planPathIn,
@@ -155,7 +158,7 @@ export const register: Register = on => {
     const mood = moodOf(b)
     const columns = e.props.bodyColumns
     // One column is kept for the finish node after the last segment.
-    const grid = layout(tasks.length, current, columns - 1)
+    const grid = layout(tasks.map(task => task.title), current, columns - 1)
     const shown = tasks.slice(grid.from, grid.to)
 
     const accent = mood === 'blocked' ? 'error' : mood === 'done' ? 'success' : 'warning'
@@ -174,7 +177,8 @@ export const register: Register = on => {
           ? { color: accent, dim: false }
           : { color: 'text', dim: true }
 
-    const catLeft = Math.max(0, Math.min(columns - CAT_COLUMNS, (Math.min(current, tasks.length - 1) - grid.from) * grid.step))
+    const currentOffset = offsetBefore(grid, Math.min(current, tasks.length - 1))
+    const catLeft = Math.max(0, Math.min(columns - CAT_COLUMNS, currentOffset))
 
     // The cat is a Raster, a terminal-only element: elsewhere the band draws the stepper alone.
     let cat = null
@@ -191,7 +195,7 @@ export const register: Register = on => {
       <Box flexDirection="column" width={columns}>
         {cat}
         <Text wrap="truncate-end">
-          {grid.cutLeft ? <Text dimColor>… </Text> : null}
+          {grid.mode === 'window' && grid.cutLeft ? <Text dimColor>… </Text> : null}
           {shown.map((task, i) => {
             const node = nodeOf(grid.from + i)
             const isDone = task.status === 'completed' || mood === 'done'
@@ -202,7 +206,7 @@ export const register: Register = on => {
                   {node.glyph}
                 </Text>
                 <Text color={isDone ? 'success' : undefined} dimColor={!isDone}>
-                  {(isDone ? '━' : '─').repeat(grid.step - 1)}
+                  {(isDone ? '━' : '─').repeat(Math.max(0, grid.widths[i]! - displayWidth(node.glyph)))}
                 </Text>
               </Text>
             )
@@ -210,12 +214,24 @@ export const register: Register = on => {
           <Text color={nodeOf(grid.to).color} dimColor={nodeOf(grid.to).dim}>
             {nodeOf(grid.to).glyph}
           </Text>
-          {grid.cutRight ? <Text dimColor> …</Text> : null}
+          {grid.mode === 'window' && grid.cutRight ? <Text dimColor> …</Text> : null}
         </Text>
         <Box>
-          {grid.cutLeft ? <Box width={2} /> : null}
+          {grid.mode === 'window' && grid.cutLeft ? <Box width={2} /> : null}
           {shown.map((task, i) => {
             const index = grid.from + i
+            const folded = foldedAt(grid, index)
+            if (folded !== null) {
+              if (index !== folded.from) return null
+
+              return (
+                <Box width={folded.width}>
+                  <Text color={folded.side === 'left' ? 'success' : undefined} dimColor={folded.side === 'right'}>
+                    {folded.label}
+                  </Text>
+                </Box>
+              )
+            }
             const label = labelOf(task, index)
             const seconds = b.durations[index]
             // The mark and time lead the title: "✓ 2m Add session model", "▶ 20m Expose logout endpoint".
@@ -227,9 +243,9 @@ export const register: Register = on => {
                   : ''
 
             return (
-              <Box width={grid.step}>
+              <Box width={grid.widths[i]}>
                 <Text color={label.color} dimColor={label.dim} wrap="truncate-end">
-                  {truncate(`${lead}${task.title}`, grid.step - 1)}
+                  {truncate(`${lead}${task.title}`, grid.widths[i]! - 1)}
                 </Text>
               </Box>
             )

@@ -1,5 +1,7 @@
 import { expect, mock, test } from 'claude-code/testing'
 
+import { displayWidth } from './plan'
+
 const PLAN_PATH = '/repo/.scratch/metrics/plans/metrics-plan.md'
 
 const plan = (first: string) => `# Metrics Implementation Plan
@@ -184,4 +186,105 @@ test('a plan edit with no /implement before it binds nothing', async ($, on) => 
 
   const band = await $.ui.mount({ plugin: 'plan-progress', surface: 'desktop', component: 'AbovePrompt', props: PROPS })
   expect(await band.find({ text: /Add ordering_user tag/ })).toBeUndefined()
+})
+
+const FOCUS_TITLES = [
+  '全部空桌時段計算', '同步預約桌位設定', '依時段驗證桌位配置', '更新可預約人數限制',
+  '移除 Config 驗證', '補預設 CONTEXT.md 說明', '驗證預約時間邊界', '整理桌位分配測試', '完成預約流程驗證',
+]
+
+/** Mounts the same plan states that the running session reads from disk. */
+const focusBand = async ($: any, on: any, current = 4, status = 'in-progress', titles = FOCUS_TITLES, columns = 200) => {
+  mock.clock(on, { now: 1_000 })
+  on('ui.render', async () => ({ type: 'Box', props: {}, children: [] }))
+  const text = `**Execution:** ${status}\n\n${titles.map((title, i) =>
+    `### Task ${i + 1}: ${title} (${i < current ? 'completed' : i === current ? status : 'pending'})`,
+  ).join('\n\n')}`
+  on('fs.read', async () => ({ value: text }))
+  on('tool.call', async () => ({ result: { success: true } }))
+  await $.tool.call({ tool: 'Skill', skill: 'implement', args: PLAN_PATH })
+
+  return $.ui.mount({ plugin: 'plan-progress', surface: 'desktop', component: 'AbovePrompt', props: { ...PROPS, bodyColumns: columns } })
+}
+
+test('a crowded Chinese plan shows folded counts and both full focus titles', async ($, on) => {
+  const band = await focusBand($, on)
+  expect(await band.find({ text: '✓4' })).toBeDefined()
+  expect(await band.find({ text: '+3' })).toBeDefined()
+  expect(await band.find({ text: /▶ 0s 移除 Config 驗證$/ })).toBeDefined()
+  expect(await band.find({ text: '補預設 CONTEXT.md 說明' })).toBeDefined()
+})
+
+test('the last current task shares focus with its predecessor', async ($, on) => {
+  const band = await focusBand($, on, 8)
+  expect(await band.find({ text: '✓7' })).toBeDefined()
+  expect(await band.find({ text: /✓ 整理桌位分配測試$/ })).toBeDefined()
+  expect(await band.find({ text: /▶ 0s 完成預約流程驗證$/ })).toBeDefined()
+  expect(await band.find({ text: /^\+\d+$/ })).toBeUndefined()
+})
+
+test('a completed plan retains the last two titles with no remaining marker', async ($, on) => {
+  const band = await focusBand($, on, 9, 'completed')
+  expect(await band.find({ text: '✓7' })).toBeDefined()
+  expect(await band.find({ text: /✓ 整理桌位分配測試$/ })).toBeDefined()
+  expect(await band.find({ text: /✓ 完成預約流程驗證$/ })).toBeDefined()
+  expect(await band.find({ text: /^\+\d+$/ })).toBeUndefined()
+})
+
+test('a blocked task retains both focus titles with the blocked prefix', async ($, on) => {
+  const band = await focusBand($, on, 4, 'blocked')
+  expect(await band.find({ text: '✓4' })).toBeDefined()
+  expect(await band.find({ text: '+3' })).toBeDefined()
+  expect(await band.find({ text: /⛔ 0s 移除 Config 驗證$/ })).toBeDefined()
+  expect(await band.find({ text: '補預設 CONTEXT.md 說明' })).toBeDefined()
+})
+
+test('short titles retain every equal-width task without folded counts', async ($, on) => {
+  const band = await focusBand($, on, 0, 'in-progress', ['Read', 'Build', 'Ship'], 100)
+  expect(await band.find({ text: /▶ 0s Read$/ })).toBeDefined()
+  expect(await band.find({ text: 'Build' })).toBeDefined()
+  expect(await band.find({ text: 'Ship' })).toBeDefined()
+  expect(await band.find({ text: /^[✓+]\d+$/ })).toBeUndefined()
+})
+
+test('a wide band shows the full title judged to fit an equal cell', async ($, on) => {
+  const band = await focusBand($, on, 0, 'in-progress', ['全部空桌時段計算與預約桌位配置驗證a', 'Build', 'Ship'], 200)
+  expect(await band.find({ text: '▶ 0s 全部空桌時段計算與預約桌位配置驗證a' })).toBeDefined()
+  expect(await band.find({ text: /…/ })).toBeUndefined()
+})
+
+/** Checks the mounted label row's allocated gaps, without claiming surface paint. */
+const expectLabelGaps = async (band: any, columns: number) => {
+  const tree = await band.drawn()
+  const row = tree.children[tree.children.length - 1]
+  let total = 0
+  for (const cell of row.children) {
+    const text = cell.children[0].children.join('')
+    expect(await band.find({ text })).toBeDefined()
+    expect(cell.props.width - displayWidth(text)).toBeGreaterThanOrEqual(1)
+    total += cell.props.width
+  }
+  expect(total).toBeLessThanOrEqual(columns)
+}
+
+test('single folded markers leave a gap beside the focus titles', async ($, on) => {
+  const band = await focusBand($, on, 1, 'in-progress', FOCUS_TITLES.slice(0, 4), 60)
+  expect(await band.find({ text: '✓1' })).toBeDefined()
+  expect(await band.find({ text: '+1' })).toBeDefined()
+  await expectLabelGaps(band, 60)
+})
+
+test('adjacent Chinese titles retain gaps in equal cells', async ($, on) => {
+  const band = await focusBand($, on, 0, 'in-progress', ['讀取設定', '建立資料', '驗證結果'], 100)
+  expect(await band.find({ text: /▶ 0s 讀取設定$/ })).toBeDefined()
+  expect(await band.find({ text: '建立資料' })).toBeDefined()
+  expect(await band.find({ text: '驗證結果' })).toBeDefined()
+  await expectLabelGaps(band, 100)
+})
+
+test('adjacent Chinese focus titles retain gaps', async ($, on) => {
+  const band = await focusBand($, on)
+  expect(await band.find({ text: /▶ 0s 移除 Config 驗證$/ })).toBeDefined()
+  expect(await band.find({ text: '補預設 CONTEXT.md 說明' })).toBeDefined()
+  await expectLabelGaps(band, 200)
 })

@@ -1,5 +1,11 @@
 # mattpocock-skills
 
+## 1.3.5
+
+### Patch Changes
+
+- `plan-progress` mod: labels now truncate by terminal display width, keeping Chinese, mixed-language titles, and wide emoji within their cells with a spacing column. Crowded plans focus on the current and next task, retain folded nodes with `✓N` and `+N` counts, and keep the cat aligned with the current node. Short titles retain equal-width cells; extremely narrow bands use the scrolling window. Focus cells retain the 40-column maximum, so longer titles still truncate. The plugin and the mod both move to `1.3.5`.
+
 ## 1.3.4
 
 ### Patch Changes
