@@ -1,7 +1,7 @@
 import { expect, test } from 'claude-code/testing'
 
 import type { Bound } from '../types'
-import { advance, brief, displayWidth, currentIndex, isImplementCommand, isImplementSkill, layout, parsePlan, planId, planPathIn, truncate } from './plan'
+import { advance, brief, currentIndex, displayWidth, isImplementCommand, isImplementSkill, layout, parsePlan, planId, planPathIn, truncate } from './plan'
 
 const PLAN = `# Demo Implementation Plan
 

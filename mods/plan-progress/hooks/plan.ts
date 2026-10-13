@@ -70,17 +70,30 @@ export const brief = (seconds: number): string => {
 export type Layout = {
   /** Terminal columns for each task in view. */
   widths: number[]
+  /** First task index included in the track. */
   from: number
+  /** Exclusive end of the tasks included in the track. */
   to: number
+  /** Whether the scrolling window omits earlier tasks. */
   cutLeft: boolean
+  /** Whether the scrolling window omits later tasks. */
   cutRight: boolean
+  /** Completed tasks collapsed before the focus pair. */
   leftFolded: number
+  /** Remaining tasks collapsed after the focus pair. */
   rightFolded: number
+  /** Equal cells, a focus pair, or a scrolling window. */
   mode: 'equal' | 'focus' | 'window'
 }
 
+/** Largest cell width in the existing equal and focus layouts. */
 const MAX_STEP = 40
+/** Smallest focus cell before falling back to a scrolling window. */
 const MIN_STEP = 8
+/** Fixed prefix allowance plus one column between titles. */
+const LABEL_RESERVE = 9
+/** A collapsed task's node and connecting line. */
+const FOLDED_STEP = 2
 
 /** Uses equal cells when titles fit, focuses crowded plans, and windows when focus cannot fit. */
 export const layout = (titles: readonly string[], current: number, columns: number): Layout => {
@@ -88,14 +101,14 @@ export const layout = (titles: readonly string[], current: number, columns: numb
   if (count === 0) return { widths: [], from: 0, to: 0, cutLeft: false, cutRight: false, leftFolded: 0, rightFolded: 0, mode: 'equal' }
   const available = Math.floor(columns / count)
   const fit = Math.min(MAX_STEP, available)
-  if (fit >= MIN_STEP && titles.every(title => displayWidth(title) + 9 <= available)) {
+  if (fit >= MIN_STEP && titles.every(title => displayWidth(title) + LABEL_RESERVE <= available)) {
     return { widths: titles.map(() => fit), from: 0, to: count, cutLeft: false, cutRight: false, leftFolded: 0, rightFolded: 0, mode: 'equal' }
   }
   const focusCount = Math.min(2, count)
   const leftFolded = Math.max(0, Math.min(current, count - focusCount))
   const rightFolded = count - leftFolded - focusCount
-  const leftWidth = leftFolded === 0 ? 0 : Math.max(leftFolded * 2, displayWidth(`✓${leftFolded}`) + 1)
-  const rightWidth = rightFolded === 0 ? 0 : Math.max(rightFolded * 2, displayWidth(`+${rightFolded}`) + 1)
+  const leftWidth = leftFolded === 0 ? 0 : Math.max(leftFolded * FOLDED_STEP, displayWidth(`✓${leftFolded}`) + 1)
+  const rightWidth = rightFolded === 0 ? 0 : Math.max(rightFolded * FOLDED_STEP, displayWidth(`+${rightFolded}`) + 1)
   const focusWidth = Math.min(MAX_STEP, Math.floor((columns - leftWidth - rightWidth) / focusCount))
 
   if (focusWidth < MIN_STEP) {
@@ -109,8 +122,8 @@ export const layout = (titles: readonly string[], current: number, columns: numb
 
   return {
     widths: titles.map((_, i) => {
-      if (i < leftFolded) return i === leftFolded - 1 ? leftWidth - (leftFolded - 1) * 2 : 2
-      if (i >= leftFolded + focusCount) return i === count - 1 ? rightWidth - (rightFolded - 1) * 2 : 2
+      if (i < leftFolded) return i === leftFolded - 1 ? leftWidth - (leftFolded - 1) * FOLDED_STEP : FOLDED_STEP
+      if (i >= leftFolded + focusCount) return i === count - 1 ? rightWidth - (rightFolded - 1) * FOLDED_STEP : FOLDED_STEP
 
       return focusWidth
     }),
