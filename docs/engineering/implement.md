@@ -2,7 +2,7 @@
 
 `implement` executes one approved local implementation plan task by task. It drives each behavior change through test-driven development, commits independently green tasks, and leaves progress evidence another agent in the same workspace can resume.
 
-It does not decide what to build or silently redesign a stale plan. Material deviations and every unresolved review finding stop execution and return the decision to you.
+It does not decide what to build or silently redesign a stale plan. Material deviations and every review finding stop execution and return the decision to you.
 
 ## When to reach for it
 
@@ -34,7 +34,7 @@ A run follows the approved plan in order:
 2. Drive [tdd](https://aihero.dev/skills-tdd) at each pre-agreed seam.
 3. Verify and commit each independently green task, recording its evidence and commit SHA in the plan.
 4. Run the plan's final verification.
-5. Run [code-review](https://aihero.dev/skills-code-review) against the recorded fixed point and complete only when it reports no findings.
+5. Run [code-review](https://aihero.dev/skills-code-review) once against the recorded fixed point. If it reports findings, you approve a corrective task or a waiver for each; the corrective tasks run, final verification reruns, and the plan completes without a second review.
 
 One run covers one plan. If the source came from [to-tickets](https://aihero.dev/skills-to-tickets), that means one frontier ticket per fresh [context window](https://www.aihero.dev/ai-coding-dictionary/context-window).
 
@@ -62,6 +62,10 @@ No. The skill explicitly stops after local completion. It does not push, create 
 
 Yes. Every green task is committed before the final review, and the plan records the fixed point that `code-review` diffs against. This avoids the upstream workflow's known failure mode where review ran before the uncommitted changes were visible.
 
+**Why doesn't it review the corrective tasks again?**
+
+Because an open-ended review always finds something new. Re-reviewing every round of fixes once turned one plan into five review rounds, the last of them about hypothetical future usage. Each corrective task instead makes the smallest change that resolves its finding, enters red first like any other task, and is followed by a rerun of final verification. Run [code-review](https://aihero.dev/skills-code-review) yourself afterwards if you want another look.
+
 **Does completing the plan close the originating ticket?**
 
 No. Completion updates the local plan and commits the implementation; tracker state remains a separate operation.
@@ -71,7 +75,7 @@ No. Completion updates the local plan and commits the implementation; tracker st
 - Every behavior change enters red first.
 - Every completed task has evidence and a commit.
 - Another agent can resume at `Resume Here`.
-- Review findings block completion.
+- Review runs once, and every finding is fixed or waived before completion.
 - `.scratch` never enters Git.
 
 ## Where it fits
@@ -82,4 +86,4 @@ No. Completion updates the local plan and commits the implementation; tracker st
 grill-with-docs → to-spec → to-tickets → to-plan → implement → code-review → retro
 ```
 
-Its upstream neighbour is [to-plan](https://aihero.dev/skills-to-plan), which owns implementation detail for one frontier ticket. Its internal disciplines are [tdd](https://aihero.dev/skills-tdd), which supplies the red-green loop at pre-agreed seams, and [code-review](https://aihero.dev/skills-code-review), which gates completion against the plan's fixed point. [implement-spec](https://aihero.dev/skills-implement-spec) is the parallel alternative: it runs every approved plan for a spec at once, each under these same rules. Afterwards, [retro](https://aihero.dev/skills-retro) looks back over the session. When you're unsure which skill or flow fits, [ask-matt](https://aihero.dev/skills-ask-matt) routes you.
+Its upstream neighbour is [to-plan](https://aihero.dev/skills-to-plan), which owns implementation detail for one frontier ticket. Its internal disciplines are [tdd](https://aihero.dev/skills-tdd), which supplies the red-green loop at pre-agreed seams, and [code-review](https://aihero.dev/skills-code-review), which reviews the plan's fixed point once before completion. [implement-spec](https://aihero.dev/skills-implement-spec) is the parallel alternative: it runs every approved plan for a spec at once, each under these same rules. Afterwards, [retro](https://aihero.dev/skills-retro) looks back over the session. When you're unsure which skill or flow fits, [ask-matt](https://aihero.dev/skills-ask-matt) routes you.

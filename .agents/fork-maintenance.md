@@ -156,9 +156,11 @@ The following invariants are mandatory:
   task breakdown, repository boundary, or core strategy changes stop for user
   approval.
 - Interruptions leave an exact `Resume Here` checkpoint.
-- Final `/code-review` runs against the recorded fixed point after task commits
-  exist. Any finding blocks completion until the user approves a corrective task
-  or waiver.
+- Final `/code-review` runs once against the recorded fixed point after task
+  commits exist. Any finding blocks completion until the user approves a
+  corrective task or waiver. Approved corrective tasks make the smallest change
+  that resolves their finding, are verified by their own tests and a rerun of
+  final verification, and are not reviewed again.
 - Completion does not push, open a pull request, close the source ticket, delete
   the plan, or perform other external cleanup automatically.
 
@@ -166,7 +168,10 @@ Decision reason: execution must be resumable and safe around user-owned working
 tree state. Material decisions stay with the user; mechanical execution can
 continue autonomously inside the approved boundary. Task commits also ensure
 that the final three-dot review can see the implementation, avoiding the
-upstream ordering problem where uncommitted work was invisible to review.
+upstream ordering problem where uncommitted work was invisible to review. The
+single review follows upstream, which reviews once and does not re-review its
+fixes: an open-ended review always finds something, so reviewing every round
+of fixes never converges.
 
 ### 5. The fork is a distinct distribution
 
@@ -470,3 +475,17 @@ the version; the plugin version was bumped by hand to `1.3.2` so installed
 copies update, with a hand-written `CHANGELOG.md` entry. The `plan-progress` mod
 moved from `0.1.6` to the same `1.3.2` so that entry covers its fix too.
 Reconcile both with upstream's next release on integration.
+
+### 2026-10-14: Review `implement` once and do not re-review fixes
+
+`implement` re-ran `code-review` after every round of corrective tasks and
+completed only when review reported no findings. On one plan this ran five
+rounds: each round of fixes, or the clean-up they prompted, surfaced new edge
+cases, and the last round's findings were all hypothetical future usage that
+did not affect current output. Upstream's `implement` reviews once, and its
+`implement-spec` fixes the review's findings once without reviewing again.
+`implement` now reviews once; the user still approves each corrective task or
+waiver, each corrective task makes the smallest change that resolves its
+finding, and final verification is rerun instead of a second review
+(divergence 4). `implement-spec` keeps its review-again loop for now. The plugin
+version was bumped by hand to `1.3.6`.
