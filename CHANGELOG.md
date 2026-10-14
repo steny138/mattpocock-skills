@@ -1,5 +1,11 @@
 # mattpocock-skills
 
+## 1.3.6
+
+### Patch Changes
+
+- `implement` now runs `code-review` once. Before this, it re-ran review after every round of approved corrective tasks and completed only when review reported no findings, so an open-ended review kept surfacing new edge cases and one plan ran five rounds. You still approve a corrective task or a waiver for each finding; each corrective task makes the smallest change that resolves its finding, final verification reruns, and the plan completes without a second review. `implement-spec` is unchanged. The `plan-progress` mod stays at `1.3.5`.
+
 ## 1.3.5
 
 ### Patch Changes
