@@ -282,6 +282,50 @@ Canonical sources:
 - `.agents/install-block.md`
 - `README.md`
 
+### 8. `to-spec` and `to-plan` check their own output for omissions
+
+Upstream's `to-spec` writes the spec and stops after showing its path and
+seams; test-seam confirmation is its only user exchange. This fork adds an
+omission check after writing, run every time. `to-plan` (a fork-only skill)
+runs the same check on its `## Work Item Contract`, but only when the work
+item's source is the conversation or otherwise unreadable from the workspace;
+a plan from a spec or ticket points at that source and skips the check. In
+`to-plan` the sub-agent reads the plan instead of the spec, and an open
+question's answer also updates any task it affects.
+
+The check:
+
+- The writing agent lists every decision the conversation settled and adds any
+  the spec does not record, without asking.
+- A sub-agent given the spec and repository but none of the conversation lists
+  the questions it would need answered before planning. Questions the
+  conversation already answered are written into the spec; questions whose
+  answer would change scope, externally observable behaviour, architecture, or
+  a test seam are asked of the user and the answers written in; the rest are
+  dropped.
+- The final report states how many decisions were added and each open question
+  with its answer.
+
+Decision reason: the agent that writes the spec has seen the whole
+conversation, so a gap reads as complete to it, and a `to-plan` run in the same
+session has the same blind spot. Grilling is usually thorough, so reviewing
+every spec by hand mostly finds nothing and gets skipped, which leaves the rare
+omission uncaught. The check catches both kinds (settled but not written, never
+discussed) without asking the user to review, and its question threshold keeps
+`to-spec` from reopening requirements discovery.
+
+Primary implementation:
+
+- `skills/engineering/to-spec/SKILL.md`
+- `skills/engineering/to-plan/SKILL.md`
+
+Required supporting surfaces:
+
+- `docs/engineering/to-spec.md`
+- `docs/engineering/to-plan.md`
+- `README.md`
+- `skills/engineering/README.md`
+
 ## What may follow upstream
 
 Upstream remains authoritative for all behaviour this contract does not
@@ -335,7 +379,10 @@ Upstream-added files that carry fork divergences without conflicting are
 `skills/engineering/implement-spec/SKILL.md` and
 `docs/engineering/implement-spec.md`; an upstream edit to either applies
 cleanly and can silently reintroduce ticket-driven building. Diff them against
-upstream on every integration. Git also auto-merged a duplicated paragraph in
+upstream on every integration. `skills/engineering/to-spec/SKILL.md` and
+`docs/engineering/to-spec.md` also carry divergence 8 since 2026-10-18; an
+upstream edit to `to-spec`'s opening paragraph or final step will conflict
+with it, so keep the omission check while absorbing the rest. Git also auto-merged a duplicated paragraph in
 `docs/engineering/to-tickets.md` after upstream reordered its questions, so
 scan resolved docs for duplicated lines.
 
@@ -489,3 +536,23 @@ waiver, each corrective task makes the smallest change that resolves its
 finding, and final verification is rerun instead of a second review
 (divergence 4). `implement-spec` keeps its review-again loop for now. The plugin
 version was bumped by hand to `1.3.6`.
+
+### 2026-10-18: Check `to-spec` output for omissions
+
+After a thorough `grill-with-docs` session the spec is usually right, so the
+user ran `/to-plan` straight after `/to-spec` in the same session without
+reviewing the spec, and had no way to tell whether anything was missing.
+Neither the writing agent nor a same-session `to-plan` can see such a gap,
+because the conversation fills it in. `to-spec` now checks its output from two
+directions after writing: the writing agent maps every settled decision to the
+spec and adds the missing ones, and a sub-agent without the conversation lists
+what it would need to ask before planning, of which only questions that change
+scope, behaviour, architecture, or a test seam reach the user (divergence 8).
+The user's same-session `to-spec` then `to-plan` habit was for work that fits
+one session, which the docs route straight to `to-plan` without a spec. That
+path writes the work-item contract from the conversation and has the same
+blind spot, so `to-plan` runs the same check when its source is the
+conversation. The idea of a reader without the conversation came from
+comparing the fork with `backnotprop/pstack`, whose briefs must be executable
+by "a stranger without chat access". The plugin version was bumped by hand to
+`1.3.7`.

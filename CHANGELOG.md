@@ -1,5 +1,11 @@
 # mattpocock-skills
 
+## 1.3.7
+
+### Patch Changes
+
+- `to-spec` now checks the spec it wrote for omissions. Before this, the agent that wrote the spec had seen the whole conversation, so a decision missing from the spec read as present to it and to a `to-plan` run in the same session. The check runs every time: the agent maps every decision the conversation settled to the spec and adds the missing ones without asking, and a sub-agent that has the spec but not the conversation lists what it would need to ask before planning. You are asked only the questions whose answers would change scope, behaviour, architecture, or a test seam, and the report says how many decisions were added. `to-plan` runs the same check on its work-item contract when it plans from the conversation, as it does for work that fits one session and skips the spec; there the sub-agent reads the plan, and an open question's answer also updates the tasks it affects. A plan from a spec or ticket skips the check. The `plan-progress` mod stays at `1.3.5`.
+
 ## 1.3.6
 
 ### Patch Changes

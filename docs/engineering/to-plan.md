@@ -22,6 +22,8 @@ The implementation plan is the seam between deciding how to build and executing 
 
 The plan owns **how** one work item will be implemented. A workspace-readable spec or ticket continues to own **what** must be delivered. When the source exists only in conversation, `to-plan` captures the agreed contract so a later agent does not need hidden context.
 
+That contract is written by an agent that has seen the whole conversation, so a missing decision reads as present to it. For a conversation source, `to-plan` therefore runs the same omission check as [to-spec](https://aihero.dev/skills-to-spec): it maps every settled decision to the contract and adds the missing ones, and a [subagent](https://www.aihero.dev/ai-coding-dictionary/subagent) given the plan but not the conversation lists what it would need to ask before implementing. Only a question that would change scope, behavior, architecture, or a test seam reaches you, and its answer goes into the contract and any task it affects. When the source is a spec or ticket, the plan points at it instead, and the check does not run.
+
 ## Common questions
 
 **Does this replace `to-spec` or `to-tickets`?**
@@ -44,6 +46,7 @@ Not in the same invocation. The stop is the phase boundary: review the plan firs
 
 - The plan covers one work item only.
 - Every behavior task has an agreed test seam.
+- When you planned from the conversation, it tells you how many decisions its omission check added to the contract.
 - Another agent can start from `Resume Here`.
 - No product code changes during planning.
 - The plan stays outside Git.
