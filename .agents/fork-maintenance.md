@@ -326,6 +326,40 @@ Required supporting surfaces:
 - `README.md`
 - `skills/engineering/README.md`
 
+### 9. `diagnosing-bugs` hands off what it does not fix
+
+Upstream's `diagnosing-bugs` ends at cleanup: a missing seam is "noted" and
+"flagged for the next phase", but no phase records it, and the skill assumes
+the fix is made in the session. This fork adds a Phase 7 that files three kinds
+of finding as `needs-triage` issues in the configured tracker:
+
+- no correct seam to lock the bug down (the bug is still fixed);
+- a confirmed cause whose fix is too large for the session, outside the given
+  scope, or needs a design decision the user owns (the fix is not applied);
+- other places confirmed, by reading the code, to share the cause.
+
+Each issue carries the red feedback-loop command and the confirmed and ruled-out
+hypotheses. The user approves each draft before it is filed. Without
+`docs/agents/issue-tracker.md` the drafts are listed in the report instead, so
+the skill stays a soft dependency under ADR 0001.
+
+Decision reason: the AI-native SDLC closes a loop from diagnosis back to
+planning. For reports from other people the fork already has that loop
+(`triage` brief, then `to-plan`), but findings a diagnosis makes on the way had
+no exit and were lost when the session ended. Filing them as `needs-triage`
+issues reuses that loop instead of adding a new artifact type.
+
+Primary implementation:
+
+- `skills/engineering/diagnosing-bugs/SKILL.md`
+
+Required supporting surfaces:
+
+- `docs/engineering/diagnosing-bugs.md`
+- `skills/engineering/ask-matt/SKILL.md`
+- `README.md`
+- `skills/engineering/README.md`
+
 ## What may follow upstream
 
 Upstream remains authoritative for all behaviour this contract does not
@@ -382,7 +416,11 @@ cleanly and can silently reintroduce ticket-driven building. Diff them against
 upstream on every integration. `skills/engineering/to-spec/SKILL.md` and
 `docs/engineering/to-spec.md` also carry divergence 8 since 2026-10-18; an
 upstream edit to `to-spec`'s opening paragraph or final step will conflict
-with it, so keep the omission check while absorbing the rest. Git also auto-merged a duplicated paragraph in
+with it, so keep the omission check while absorbing the rest.
+`skills/engineering/diagnosing-bugs/SKILL.md`
+and `docs/engineering/diagnosing-bugs.md` carry divergence 9 since 2026-10-19;
+an upstream edit to Phase 5 or Phase 6, or to the page's phase count, will
+conflict with it, so keep Phase 7 while absorbing the rest. Git also auto-merged a duplicated paragraph in
 `docs/engineering/to-tickets.md` after upstream reordered its questions, so
 scan resolved docs for duplicated lines.
 
@@ -556,3 +594,17 @@ conversation. The idea of a reader without the conversation came from
 comparing the fork with `backnotprop/pstack`, whose briefs must be executable
 by "a stranger without chat access". The plugin version was bumped by hand to
 `1.3.7`.
+
+### 2026-10-19: Hand off what `diagnosing-bugs` does not fix
+
+Comparing the fork with the AI-native SDLC playbook, whose maintain stage
+writes each diagnosis back into planning, showed that the fork already closes
+that loop for reports from other people (`triage`, then `to-plan`) but not for
+what a diagnosis finds on the way. `diagnosing-bugs` told the agent to flag a
+missing seam "for the next phase" with no phase to receive it, and had no exit
+for a fix it should not make in the session. A new Phase 7 files a missing
+seam, a fix too large or needing the user's decision, and confirmed sibling
+instances as `needs-triage` issues after the user approves each draft
+(divergence 9). It ships together with divergence 8, the `to-spec`
+omission check released as `1.3.7`. The plugin version
+was bumped by hand to `1.3.8`.

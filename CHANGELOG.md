@@ -1,5 +1,11 @@
 # mattpocock-skills
 
+## 1.3.8
+
+### Patch Changes
+
+- `diagnosing-bugs` now hands off what it does not fix. Before this, a missing seam was only "flagged for the next phase" with no phase to receive it, and the skill had no exit for a fix it should not make in the session, so those findings were lost when the session ended. A new Phase 7 files three kinds of finding as `needs-triage` issues in the configured tracker, where `/triage` picks them up: a missing seam (the bug is still fixed), a confirmed cause whose fix is too large, outside the given scope, or needs your design decision (the fix is not applied), and other places confirmed to share the cause. Each issue carries the red feedback-loop command and the confirmed and ruled-out hypotheses, and nothing is filed until you approve the draft. Without a configured tracker, the drafts are listed in the report instead. The `plan-progress` mod stays at `1.3.5`.
+
 ## 1.3.7
 
 ### Patch Changes
