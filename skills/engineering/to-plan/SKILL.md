@@ -123,6 +123,18 @@ Prefer vertical tracer-bullet tasks. Each task must be independently verifiable 
 
 Do not repeat requirements from a workspace-readable source. Point to it and include only the implementation detail needed to execute reliably.
 
-### 5. Stop at the boundary
+### 5. Check the contract for omissions
 
-Show the user the plan path, task list, test seams, and any remaining risks. Ask for confirmation. Do not publish the plan to an issue tracker, edit product code, stage files, commit, push, or invoke `/implement` in this invocation.
+Run this step only when the work item's source is the conversation or anything else another agent cannot read from the workspace, since only then does the plan carry the contract itself. You wrote that contract having seen the whole conversation, so anything that lives only in the conversation is invisible to you.
+
+**Decisions not written down.** List every decision the conversation settled about this work item, one line each, and find where `## Work Item Contract` records it. Add each decision with no home. These were already agreed, so adding them is synthesis, not a new decision.
+
+**Questions never asked.** Spawn a sub-agent with the plan path and repository access, and none of the conversation. Ask it for the questions it would need answered before it could implement the plan. Sort each one:
+
+- Answered in the conversation: the contract missed it. Add the answer.
+- Unanswered, and the answer would change scope, externally observable behavior, architecture, or a test seam: an open question. Ask the user, write the answer into the contract, and update any task it affects.
+- Anything else: drop it.
+
+### 6. Stop at the boundary
+
+Show the user the plan path, task list, test seams, and any remaining risks. When step 5 ran, also show how many decisions you added and each open question with its answer. Ask for confirmation. Do not publish the plan to an issue tracker, edit product code, stage files, commit, push, or invoke `/implement` in this invocation.

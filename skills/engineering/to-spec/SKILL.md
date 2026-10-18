@@ -1,10 +1,10 @@
 ---
 name: to-spec
-description: "Turn the current conversation into a local spec: synthesize what is already known, with only test-seam confirmation before writing."
+description: "Turn the current conversation into a local spec: synthesize what is already known, confirm test seams before writing, and check the written spec for omissions."
 disable-model-invocation: true
 ---
 
-This skill takes the current conversation context and codebase understanding and produces a spec. Do not reopen requirements discovery or interview the user for new product decisions. Synthesize what you already know; the only required user exchange is confirmation of the proposed test seams before writing.
+This skill takes the current conversation context and codebase understanding and produces a spec. Do not reopen requirements discovery or interview the user for new product decisions. Synthesize what you already know. The only user exchanges are confirming the proposed test seams before writing, and answering any open questions the omission check in step 4 surfaces.
 
 ## Process
 
@@ -86,4 +86,14 @@ Any further notes about the feature.
 
 </spec-template>
 
-4. Show the user the spec path and the confirmed test seams. Do not create, edit, label, or comment on an issue as part of this skill.
+4. Check the spec for omissions. You wrote it having seen the whole conversation, so anything that lives only in the conversation is invisible to you. Run both checks every time, even when the spec looks complete.
+
+   **Decisions not written down.** List every decision the conversation settled, one line each, and find the spec section that records it. Add each decision with no home to the spec. These were already agreed, so adding them is synthesis, not a new product decision.
+
+   **Questions never asked.** Spawn a sub-agent with the spec path and repository access, and none of the conversation. Ask it for the questions it would need answered before it could plan the implementation. Sort each one:
+
+   - Answered in the conversation: the spec missed it. Add the answer to the spec.
+   - Unanswered, and the answer would change scope, externally observable behavior, architecture, or a test seam: an open question. Ask the user, then write the answer into the spec.
+   - Anything else: drop it.
+
+5. Show the user the spec path, the confirmed test seams, and the omission check's result: how many decisions you added, and each open question with its answer. Do not create, edit, label, or comment on an issue as part of this skill.

@@ -1,6 +1,6 @@
 ## What it does
 
-`diagnosing-bugs` runs a six-phase diagnosis on a hard bug or a performance regression: build a repro, minimise it, rank hypotheses, instrument, fix with a regression test, clean up.
+`diagnosing-bugs` runs a seven-phase diagnosis on a hard bug or a performance regression: build a repro, minimise it, rank hypotheses, instrument, fix with a regression test, clean up, and hand off what the session won't fix.
 
 It will not let the agent form a theory until a **tight** feedback loop exists: one named command, already run once, that goes red on *this* bug and green when it is fixed. Given a bug report, a coding agent by default reads code and guesses. This skill blocks that. If no red-capable command exists, there is no Phase 2. That single gate is what the skill is for. Once the loop exists, everything after it (bisection, hypothesis-testing, instrumentation) is mechanical.
 
@@ -19,7 +19,7 @@ Reach for it on the hard ones: a bug you can't solve at first look, an intermitt
 | Throwaway code to answer a design question, not chase a defect | [prototype](https://aihero.dev/skills-prototype) |
 | Building a planned behaviour test-first | [tdd](https://aihero.dev/skills-tdd) |
 | Asking what would have prevented the bug, once it is fixed | [retro](https://aihero.dev/skills-retro), run in the same session |
-| No good seam exists to lock the bug down | [improve-codebase-architecture](https://aihero.dev/skills-improve-codebase-architecture), which you start yourself |
+| No good seam exists to lock the bug down | This skill files it as an issue for [triage](https://aihero.dev/skills-triage); for the architecture behind it, [improve-codebase-architecture](https://aihero.dev/skills-improve-codebase-architecture), which you start yourself |
 
 ## The tight loop is the skill
 
@@ -52,7 +52,19 @@ The phases are gates, not a checklist. The agent cannot enter a phase until a sp
 | Into Phase 5 | Probes map to a specific prediction, one variable at a time, every debug log has a tag like `[DEBUG-a4f2]`, so one grep finds them all for cleanup |
 | Done | The original repro no longer reproduces, the instrumentation is gone, and the commit message names the hypothesis that turned out correct |
 
-Phase 5 has one exception. The agent writes the regression test before the fix, but only if a **correct seam** exists for it: one where the test exercises the real bug pattern as it occurs at the call site. Where the only available seam is too shallow, the skill tells the agent to say so instead of writing a test that gives false confidence. The missing seam is itself a finding, and the agent records it instead of hiding it.
+Phase 5 has one exception. The agent writes the regression test before the fix, but only if a **correct seam** exists for it: one where the test exercises the real bug pattern as it occurs at the call site. Where the only available seam is too shallow, the skill tells the agent to say so instead of writing a test that gives false confidence. The missing seam is itself a finding, and the agent hands it off instead of hiding it.
+
+## What outlives the session
+
+A diagnosis often learns more than the one fix needs. Left in a commit message, that knowledge is gone once the session ends. So the last phase files each such finding as an issue in the `needs-triage` state, where [triage](https://aihero.dev/skills-triage) picks it up and turns it into a brief that [to-plan](https://aihero.dev/skills-to-plan) can plan:
+
+| Finding | What the agent does |
+| --- | --- |
+| No correct seam to lock the bug down | Fixes the bug, and files the missing seam |
+| The fix is too large for the session, outside the scope it was given, or needs your design decision | Stops at the diagnosis, and files the cause instead of fixing it |
+| Other places share the confirmed cause | Files only the ones it confirmed by reading the code |
+
+Each issue carries what the diagnosis already proved: the command that goes red, the confirmed hypothesis, and the ones ruled out. Filing is visible to other people, so the agent shows you each draft and files only what you approve. Without a configured issue tracker it lists the drafts in its report instead.
 
 ## Common questions
 
@@ -63,7 +75,7 @@ This is the most-reported problem with the skill. On GPT-5.6-Sol especially, use
 No. It diagnoses one failure you can already name. Its performance branch is for a regression with a symptom (establish a baseline measurement, then bisect, measure first and fix second), not for a proactive sweep. A skill for the proactive version was [proposed and closed](https://github.com/mattpocock/skills/issues/431); no skill does it now.
 
 **Does it stop and ask me before it writes the fix?**
-No. Only Phase 3 has a human checkpoint: the ranked hypothesis list is shown to you before any is tested, and the agent continues with its own ranking if you are away. There is no gate between instrumentation and the fix, so the agent can start writing code before you have agreed with its root cause. [Issue #124](https://github.com/mattpocock/skills/issues/124) asks for that gate and is still open. If you want it, say so when you invoke the skill.
+No. Only Phase 3 has a human checkpoint: the ranked hypothesis list is shown to you before any is tested, and the agent continues with its own ranking if you are away. There is no gate between instrumentation and the fix, so the agent can start writing code before you have agreed with its root cause. The one exception is a fix that is too large, outside its scope, or needs a design decision: it files that as an issue instead of applying it. [Issue #124](https://github.com/mattpocock/skills/issues/124) asks for that gate and is still open. If you want it, say so when you invoke the skill.
 
 **I already ran `/triage` on this bug report. Is this the same work again?**
 Partly, and neither skill says so. As one reader put it: "Triage's step 3 is essentially a shallow, bounded instance of diagnosing-bugs Phase 1–2, but neither file mentions the other." Triage does a bounded "is this actually a bug, and what is the surface" pass; this skill does the thorough version. Running triage first is not wasted, because its verification often gives you most of Phase 1's raw material. But expect this skill to redo that work in full, and expect no cross-reference to tell you so.
@@ -86,9 +98,10 @@ v1.0.0 renamed it to `/diagnosing-bugs`. The old name no longer exists. Anything
 - Every debug log it adds carries a tag like `[DEBUG-a4f2]`, and a grep for that tag comes back empty when it declares done.
 - The commit or PR message names which hypothesis was right.
 - When it cannot lock the bug down with a test, it says so instead of writing a shallow one.
+- Anything it found but did not fix reaches you as a draft issue, and nothing is filed until you approve it.
 
 ## Where it fits
 
-`diagnosing-bugs` is a reach-for-it-anytime standalone. You start it when something is broken, and it ends when the fix and its regression test are in. It keeps no state and needs no prior setup. [ask-matt](https://aihero.dev/skills-ask-matt) routes "Something's broken" here.
+`diagnosing-bugs` is a reach-for-it-anytime standalone. You start it when something is broken, and it ends when the fix and its regression test are in, and anything left over is handed off. It keeps no state and needs no prior setup; with an issue tracker configured by [setup-matt-pocock-skills](https://aihero.dev/skills-setup-matt-pocock-skills), it can also file what it hands off. [ask-matt](https://aihero.dev/skills-ask-matt) routes "Something's broken" here.
 
-Two neighbours matter. [retro](https://aihero.dev/skills-retro) comes after it: once the fix is in, run it in the same session to ask what would have prevented the bug, while the session has more information than it had at the start. `diagnosing-bugs` never invokes `retro` itself, because `retro` is user-invoked. [triage](https://aihero.dev/skills-triage) comes before it for bugs that arrive as raw reports from other people, and does a shallower version of the same first two phases.
+Two neighbours matter. [retro](https://aihero.dev/skills-retro) comes after it: once the fix is in, run it in the same session to ask what would have prevented the bug, while the session has more information than it had at the start. `diagnosing-bugs` never invokes `retro` itself, because `retro` is user-invoked. [triage](https://aihero.dev/skills-triage) comes before it for bugs that arrive as raw reports from other people, and does a shallower version of the same first two phases. It also comes after, for the issues this skill files.

@@ -117,7 +117,9 @@ Write the regression test **before the fix**, but only if there is a **correct s
 
 A correct seam is one where the test exercises the **real bug pattern** as it occurs at the call site. If the only available seam is too shallow (single-caller test when the bug needs multiple callers, unit test that can't replicate the chain that triggered the bug), a regression test there gives false confidence.
 
-**If no correct seam exists, that itself is the finding.** Note it. The codebase architecture is preventing the bug from being locked down. Flag this for the next phase.
+**If no correct seam exists, that itself is the finding.** The codebase architecture is preventing the bug from being locked down. Phase 7 hands it off.
+
+**If the fix is one you should not make here** (see Phase 7), do not apply it. Run the Phase 6 items that still apply, then go to Phase 7.
 
 If a correct seam exists:
 
@@ -132,7 +134,21 @@ If a correct seam exists:
 Required before declaring done:
 
 - [ ] Original repro no longer reproduces (re-run the Phase 1 loop)
-- [ ] Regression test passes (or absence of seam is documented)
+- [ ] Regression test passes (or the missing seam is handed off in Phase 7)
 - [ ] All `[DEBUG-...]` instrumentation removed (`grep` the prefix)
 - [ ] Throwaway prototypes deleted (or moved to a clearly-marked debug location)
 - [ ] The hypothesis that turned out correct is stated in the commit / PR message, so the next debugger learns
+
+## Phase 7: Hand off what this session won't fix
+
+Some findings outlive the session. File each as an issue rather than leaving it in a commit message:
+
+- **No correct seam** (Phase 5): the architecture stops this bug from being locked down.
+- **A fix you should not make here**: the cause is confirmed, but the fix is too large for this session, reaches outside the scope you were given, or needs a design decision only the user can make.
+- **Other instances of the same pattern**: places that share the confirmed cause. List only ones you confirmed by reading the code, not guesses.
+
+Each issue carries what the diagnosis already established: the feedback-loop command that goes red, the confirmed hypothesis and the ones ruled out, and, for a missing seam, why every available seam is too shallow. Redact as above.
+
+File into the issue tracker described in `docs/agents/issue-tracker.md`, in the `needs-triage` state (using the label string from `docs/agents/triage-labels.md` when it exists), so `/triage` picks it up. Filing is a write other people can see: show the user each draft issue and file only the ones they approve. If `docs/agents/issue-tracker.md` is missing, list the drafts in your report instead, and tell the user that running `/setup-matt-pocock-skills` lets this skill file them.
+
+If none of the three applies, skip this phase.

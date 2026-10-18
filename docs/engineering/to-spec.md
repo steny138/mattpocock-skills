@@ -2,7 +2,7 @@
 
 `to-spec` turns the conversation you have just had into a local **[spec](https://www.aihero.dev/ai-coding-dictionary/spec)** at `.scratch/<feature>/spec.md`.
 
-It does not reopen requirements discovery or publish anything to an issue tracker. When you reach for it, the deciding is already done. So it synthesises what is known (from the thread, the codebase, your `GLOSSARY.md` and ADRs) and does not start a new round of product questions. The only required exchange is confirmation of the proposed test seams before writing. The spec records decisions you already made. It is not a place to make new ones.
+It does not reopen requirements discovery or publish anything to an issue tracker. When you reach for it, the deciding is already done. So it synthesises what is known (from the thread, the codebase, your `GLOSSARY.md` and ADRs) and does not start a new round of product questions. The required exchange is confirmation of the proposed test seams before writing. The only other question it asks is one its omission check turns up, and only when the answer would change scope, behaviour, architecture, or a test seam. The spec records decisions you already made. It is not a place to make new ones.
 
 ## When to reach for it
 
@@ -32,6 +32,17 @@ So the spec does not validate or decide anything. It records what you decided, i
 Before it writes anything, `to-spec` sketches the **seams** where the feature will be tested, and checks them with you. It prefers existing seams to new ones, and picks the highest seam it can. The ideal number of seams for a change is one.
 
 Other skills use those agreed seams later. [tdd](https://aihero.dev/skills-tdd) works only at seams you agreed in advance. [code-review](https://aihero.dev/skills-code-review) reviews the diff against the spec, so a seam nobody agreed to shows up as a review finding. Both connections go through this document. That is why you should take the seam conversation seriously here, and not leave it for implementation.
+
+## Checking for omissions
+
+The agent that writes the spec has seen the whole conversation, and that is why it cannot see what the spec leaves out: a gap reads as complete when the conversation fills it in. So after writing, `to-spec` checks the spec from two directions, every time:
+
+| Omission | How it is caught | What happens |
+| --- | --- | --- |
+| Settled in the conversation, missing from the spec | The agent lists every decision the conversation settled and finds where the spec records each one | A missing decision is added without asking, since you already made it |
+| Never discussed at all | A [subagent](https://www.aihero.dev/ai-coding-dictionary/subagent) that has the spec and the repository, but not the conversation, lists what it would need to ask before planning | An answer the conversation already holds goes into the spec; a question that would change scope, behaviour, architecture, or a seam is asked of you; the rest are dropped |
+
+When nothing is missing, the check costs you one line of output. It makes the spec more complete, not more correct: it confirms your decisions were written down, and does not second-guess them.
 
 ## Common questions
 
@@ -70,6 +81,7 @@ Pass `.scratch/<feature>/spec.md` explicitly. The fixed local path avoids tracke
 - It shows you the seams before it writes, and proposes as few as it can.
 - It uses your project's nouns, not generic product-management boilerplate.
 - You remember making every decision in it. It invented nothing to fill a section.
+- It tells you how many decisions its omission check added, and any question it asks you would change scope, behaviour, architecture, or a seam.
 - The out-of-scope section lists real things. The things you refused are usually the most useful lines on the page.
 
 ## Where it fits
