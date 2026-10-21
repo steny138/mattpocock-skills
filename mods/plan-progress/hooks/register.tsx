@@ -17,12 +17,14 @@ import {
   planPathIn,
   truncate,
 } from './plan'
-import { COLUMNS as PICTURE_COLUMNS, ROWS as PICTURE_ROWS, pictureFor } from './picture'
+import { FRAME_COUNT, COLUMNS as PICTURE_COLUMNS, ROWS as PICTURE_ROWS, frameFile, pictureFor } from './picture'
 import { COLUMNS as CAT_COLUMNS, ROWS as CAT_ROWS, frameFor, type Mood } from './sprite'
 
 const FRAME_MS = 175
 const POLL_MS = 3000
 const CAT_KEY = 'cat'
+// Drawn dim where the picture cannot be, so a refused picture still shows a cat.
+const CAT_ALT = '=^.^='
 
 const bound = atom({ plugin: 'plan-progress', key: 'bound' } as const, null)
 const tick = atom({ plugin: 'plan-progress', key: 'tick' } as const, 0)
@@ -54,6 +56,18 @@ const startImplement = async ($: EngineInterface, named: string | null, lastPlan
   return false
 }
 
+/** The shipped frames as base64 PNGs in frame order, or null when any cannot be read. */
+const loadFrames = async ($: EngineInterface): Promise<string[] | null> => {
+  const read = (n: number) =>
+    $.fs.read(frameFile($.plugin.root, n), { as: 'bytes' }).then(
+      bytes => (typeof bytes?.base64 === 'string' ? bytes.base64 : null),
+      () => null,
+    )
+  const frames = await Promise.all(Array.from({ length: FRAME_COUNT }, (_, i) => read(i + 1)))
+
+  return frames.every(frame => frame !== null) ? frames : null
+}
+
 const refresh = async ($: EngineInterface): Promise<void> => {
   const current = await read($, bound)
   if (current === null) return
@@ -69,9 +83,12 @@ export const register: Register = on => {
   let bandId: string | null = null
   let frame = 0
   let lastMtime = 0
-  // The cat is an Image until a blit is denied (the terminal draws its alt instead), then a Raster for the session.
+  // The cat is an Image once its frames are read, until a blit is denied (the terminal draws its alt instead),
+  // then a Raster for the session. Frames that cannot be read leave it a Raster.
+  let frames: string[] | null = null
   let isImageDenied = false
   let isImageChecked = false
+  const isPictured = () => frames !== null && !isImageDenied
   // Blits only reach a cat the band last drew, so one it did not draw is never mistaken for a terminal without pictures.
   let hasCat = false
 
@@ -83,12 +100,13 @@ export const register: Register = on => {
         if (b === null || bandId === null) return
         frame += 1
         const mood = moodOf(b)
-        if (hasCat && isImageDenied) {
+        const pictured = isPictured() ? frames : null
+        if (hasCat && pictured === null) {
           if (mood === 'running') void $.ui.blit({ requestId: bandId, key: CAT_KEY, cells: frameFor(mood, frame) })
-        } else if (hasCat && (mood === 'running' || !isImageChecked)) {
+        } else if (hasCat && pictured !== null && (mood === 'running' || !isImageChecked)) {
           // A still cat is blitted once too, so a terminal that cannot draw it still falls back.
           // A denial may resolve as { deny } or reject; either way the picture is not shown.
-          const result = await $.ui.blit({ requestId: bandId, key: CAT_KEY, source: pictureFor($.plugin.root, mood, frame) })
+          const result = await $.ui.blit({ requestId: bandId, key: CAT_KEY, source: pictureFor(pictured, mood, frame) })
             .catch((error: unknown) => ({ deny: String(error) }))
           if (result.deny === undefined) isImageChecked = true
           else {
@@ -98,6 +116,12 @@ export const register: Register = on => {
         }
         if (frame % Math.round(1000 / FRAME_MS) === 0) await update($, tick, n => n + 1)
       })()
+    })
+
+    // The band draws the Raster cat until the frames are read, then redraws as the Image.
+    void loadFrames($).then(loaded => {
+      frames = loaded
+      if (loaded !== null) $.ui.invalidate('ui.render')
     })
 
     // Catch edits no tool call announced (a subagent, a Bash heredoc).
@@ -200,7 +224,8 @@ export const register: Register = on => {
           : { color: 'text', dim: true }
 
     const currentOffset = offsetBefore(grid, Math.min(current, tasks.length - 1))
-    const catLeft = Math.max(0, Math.min(columns - (isImageDenied ? CAT_COLUMNS : PICTURE_COLUMNS), currentOffset))
+    const pictured = isPictured() ? frames : null
+    const catLeft = Math.max(0, Math.min(columns - (pictured === null ? CAT_COLUMNS : PICTURE_COLUMNS), currentOffset))
 
     // The cat is an Image or a Raster, both terminal-only elements: elsewhere the band draws the stepper alone.
     let cat = null
@@ -208,10 +233,10 @@ export const register: Register = on => {
       const { Image, Raster } = $.ui.resolve(e)
       cat = (
         <Box marginLeft={catLeft}>
-          {isImageDenied ? (
+          {pictured === null ? (
             <Raster key={CAT_KEY} columns={CAT_COLUMNS} rows={CAT_ROWS} cells={frameFor(mood, frame)} />
           ) : (
-            <Image key={CAT_KEY} columns={PICTURE_COLUMNS} rows={PICTURE_ROWS} source={pictureFor($.plugin.root, mood, frame)} alt=" " />
+            <Image key={CAT_KEY} columns={PICTURE_COLUMNS} rows={PICTURE_ROWS} source={pictureFor(pictured, mood, frame)} alt={CAT_ALT} />
           )}
         </Box>
       )
