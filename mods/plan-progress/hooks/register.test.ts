@@ -192,8 +192,11 @@ test('a plan edit with no /implement before it binds nothing', async ($, on) => 
 const typesIn = (node: any): string[] =>
   node === null || typeof node !== 'object' ? [] : [node.type, ...(node.children ?? []).flatMap(typesIn)]
 
-/** A terminal band over a bound plan, its blits answered by `blit`. */
-const terminalBand = async ($: any, on: any, blit: (args: any) => { value: {} } | { deny: string }) => {
+/** A whole 1x1 PNG, as bytes: the engine refuses a `png` source that does not parse as one. */
+const PNG = atob('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAC0lEQVR4nGNgAAIAAAUAAXpeqz8AAAAASUVORK5CYII=')
+
+/** A terminal band over a bound plan, its blits answered by `blit`; each frame reads as that PNG, its path after IEND. */
+const terminalBand = async ($: any, on: any, blit: (args: any) => { value: {} } | { deny: string }, frames = true) => {
   const clock = mock.clock(on, { now: 1_000 })
   const blits: any[] = []
   on('session.start', async (_$: unknown, e: any) => ({ cwd: e.cwd }))
@@ -203,7 +206,9 @@ const terminalBand = async ($: any, on: any, blit: (args: any) => { value: {} } 
 
     return blit(e)
   })
-  on('fs.read', async () => ({ value: plan('pending') }))
+  on('fs.read', async (_$: unknown, e: { path: string; as: string }) =>
+    e.as === 'bytes' ? (frames ? { value: { base64: btoa(`${PNG}${e.path}`) } } : { deny: 'ENOENT' }) : { value: plan('pending') },
+  )
   on('tool.call', async () => ({ result: { success: true } }))
   await $.session.start({ cwd: '/repo', surface: 'terminal', isInteractive: true })
   await $.tool.call({ tool: 'Skill', skill: 'implement', args: PLAN_PATH })
@@ -212,14 +217,30 @@ const terminalBand = async ($: any, on: any, blit: (args: any) => { value: {} } 
   return { band, blits, clock }
 }
 
-test('a terminal that draws pictures animates the cat as an Image', async ($, on) => {
+test('a terminal that draws pictures animates the cat as an Image of PNG bytes', async ($, on) => {
   const { band, blits, clock } = await terminalBand($, on, () => ({ value: {} }))
   expect(typesIn(await band.drawn())).toContain('Image')
   await clock.advance(400)
   expect(blits.length).toBe(2)
-  expect(blits.every(b => /\/assets\/cat-\d\.png$/.test(b.source?.file))).toBe(true)
-  expect(blits[0].source.file).not.toBe(blits[1].source.file)
+  // Bytes, never a path: Orca's xterm.js refuses kitty file transmission without denying the blit.
+  expect(blits.every(b => b.source?.file === undefined && /\/assets\/cat-\d\.png$/.test(atob(b.source?.png ?? '')))).toBe(true)
+  expect(blits[0].source.png).not.toBe(blits[1].source.png)
   expect(typesIn(await band.drawn())).not.toContain('Raster')
+})
+
+test('frames that cannot be read leave the cat a Raster', async ($, on) => {
+  const { band, blits, clock } = await terminalBand($, on, () => ({ value: {} }), false)
+  await clock.advance(400)
+  const types = typesIn(await band.drawn())
+  expect(types).toContain('Raster')
+  expect(types).not.toContain('Image')
+  expect(blits.every(b => b.cells !== undefined)).toBe(true)
+})
+
+test('the Image names a visible alt, so a refused picture still shows a cat', async ($, on) => {
+  const { band } = await terminalBand($, on, () => ({ value: {} }))
+  const image = await band.find({ type: 'Image' })
+  expect(image?.props.alt.trim()).not.toBe('')
 })
 
 test('a terminal that draws the alt instead falls back to the Raster cat', async ($, on) => {
