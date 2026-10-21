@@ -188,6 +188,69 @@ test('a plan edit with no /implement before it binds nothing', async ($, on) => 
   expect(await band.find({ text: /Add ordering_user tag/ })).toBeUndefined()
 })
 
+/** The element types in a drawn tree, depth first. */
+const typesIn = (node: any): string[] =>
+  node === null || typeof node !== 'object' ? [] : [node.type, ...(node.children ?? []).flatMap(typesIn)]
+
+/** A terminal band over a bound plan, its blits answered by `blit`. */
+const terminalBand = async ($: any, on: any, blit: (args: any) => { value: {} } | { deny: string }) => {
+  const clock = mock.clock(on, { now: 1_000 })
+  const blits: any[] = []
+  on('session.start', async (_$: unknown, e: any) => ({ cwd: e.cwd }))
+  on('ui.render', async () => ({ type: 'Box', props: {}, children: [] }))
+  on('ui.blit', async (_$: unknown, e: any) => {
+    blits.push(e)
+
+    return blit(e)
+  })
+  on('fs.read', async () => ({ value: plan('pending') }))
+  on('tool.call', async () => ({ result: { success: true } }))
+  await $.session.start({ cwd: '/repo', surface: 'terminal', isInteractive: true })
+  await $.tool.call({ tool: 'Skill', skill: 'implement', args: PLAN_PATH })
+  const band = await $.ui.mount({ plugin: 'plan-progress', surface: 'terminal', component: 'AbovePrompt', props: PROPS })
+
+  return { band, blits, clock }
+}
+
+test('a terminal that draws pictures animates the cat as an Image', async ($, on) => {
+  const { band, blits, clock } = await terminalBand($, on, () => ({ value: {} }))
+  expect(typesIn(await band.drawn())).toContain('Image')
+  await clock.advance(400)
+  expect(blits.length).toBe(2)
+  expect(blits.every(b => /\/assets\/cat-\d\.png$/.test(b.source?.file))).toBe(true)
+  expect(blits[0].source.file).not.toBe(blits[1].source.file)
+  expect(typesIn(await band.drawn())).not.toContain('Raster')
+})
+
+test('a terminal that draws the alt instead falls back to the Raster cat', async ($, on) => {
+  const { band, blits, clock } = await terminalBand($, on, b => (b.source ? { deny: 'no placeholder images' } : { value: {} }))
+  await clock.advance(200)
+  const types = typesIn(await band.drawn())
+  expect(types).toContain('Raster')
+  expect(types).not.toContain('Image')
+  await clock.advance(200)
+  expect(blits.at(-1).cells).toBeDefined()
+})
+
+test('a band drawn without a cat sends no blit that could be denied', async ($, on) => {
+  const clock = mock.clock(on, { now: 1_000 })
+  const blits: any[] = []
+  on('session.start', async (_$: unknown, e: any) => ({ cwd: e.cwd }))
+  on('ui.render', async () => ({ type: 'Box', props: {}, children: [] }))
+  on('ui.blit', async (_$: unknown, e: any) => {
+    blits.push(e)
+
+    return { deny: 'nothing mounted' }
+  })
+  on('fs.read', async () => ({ value: plan('pending') }))
+  on('tool.call', async () => ({ result: { success: true } }))
+  await $.session.start({ cwd: '/repo', surface: null, isInteractive: true })
+  await $.tool.call({ tool: 'Skill', skill: 'implement', args: PLAN_PATH })
+  await mountBand($)
+  await clock.advance(400)
+  expect(blits).toEqual([])
+})
+
 const FOCUS_TITLES = [
   '全部空桌時段計算', '同步預約桌位設定', '依時段驗證桌位配置', '更新可預約人數限制',
   '移除 Config 驗證', '補預設 CONTEXT.md 說明', '驗證預約時間邊界', '整理桌位分配測試', '完成預約流程驗證',

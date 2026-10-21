@@ -17,9 +17,10 @@ import {
   planPathIn,
   truncate,
 } from './plan'
+import { COLUMNS as PICTURE_COLUMNS, ROWS as PICTURE_ROWS, pictureFor } from './picture'
 import { COLUMNS as CAT_COLUMNS, ROWS as CAT_ROWS, frameFor, type Mood } from './sprite'
 
-const FRAME_MS = 220
+const FRAME_MS = 175
 const POLL_MS = 3000
 const CAT_KEY = 'cat'
 
@@ -68,6 +69,11 @@ export const register: Register = on => {
   let bandId: string | null = null
   let frame = 0
   let lastMtime = 0
+  // The cat is an Image until a blit is denied (the terminal draws its alt instead), then a Raster for the session.
+  let isImageDenied = false
+  let isImageChecked = false
+  // Blits only reach a cat the band last drew, so one it did not draw is never mistaken for a terminal without pictures.
+  let hasCat = false
 
   on('session.start', async ($, e, next) => {
     // Animate the cat in place, and redraw the clocks once a second.
@@ -76,8 +82,19 @@ export const register: Register = on => {
         const b = await read($, bound)
         if (b === null || bandId === null) return
         frame += 1
-        if (moodOf(b) === 'running') {
-          void $.ui.blit({ requestId: bandId, key: CAT_KEY, cells: frameFor('running', frame) })
+        const mood = moodOf(b)
+        if (hasCat && isImageDenied) {
+          if (mood === 'running') void $.ui.blit({ requestId: bandId, key: CAT_KEY, cells: frameFor(mood, frame) })
+        } else if (hasCat && (mood === 'running' || !isImageChecked)) {
+          // A still cat is blitted once too, so a terminal that cannot draw it still falls back.
+          // A denial may resolve as { deny } or reject; either way the picture is not shown.
+          const result = await $.ui.blit({ requestId: bandId, key: CAT_KEY, source: pictureFor($.plugin.root, mood, frame) })
+            .catch((error: unknown) => ({ deny: String(error) }))
+          if (result.deny === undefined) isImageChecked = true
+          else {
+            isImageDenied = true
+            $.ui.invalidate('ui.render')
+          }
         }
         if (frame % Math.round(1000 / FRAME_MS) === 0) await update($, tick, n => n + 1)
       })()
@@ -147,9 +164,14 @@ export const register: Register = on => {
 
   on('ui.render', { component: 'AbovePrompt' }, async ($, e, next) => {
     const b = await read($, bound)
-    if (b === null || b.plan === null || e.props.hasSurvey) return next(e)
+    if (b === null || b.plan === null || e.props.hasSurvey) {
+      hasCat = false
+
+      return next(e)
+    }
     await read($, tick)
     bandId = e.requestId
+    hasCat = e.surface === 'terminal'
 
     const { Box, Text } = $.ui.resolve(e)
     const now = await $.clock.now()
@@ -178,15 +200,19 @@ export const register: Register = on => {
           : { color: 'text', dim: true }
 
     const currentOffset = offsetBefore(grid, Math.min(current, tasks.length - 1))
-    const catLeft = Math.max(0, Math.min(columns - CAT_COLUMNS, currentOffset))
+    const catLeft = Math.max(0, Math.min(columns - (isImageDenied ? CAT_COLUMNS : PICTURE_COLUMNS), currentOffset))
 
-    // The cat is a Raster, a terminal-only element: elsewhere the band draws the stepper alone.
+    // The cat is an Image or a Raster, both terminal-only elements: elsewhere the band draws the stepper alone.
     let cat = null
     if (e.surface === 'terminal') {
-      const { Raster } = $.ui.resolve(e)
+      const { Image, Raster } = $.ui.resolve(e)
       cat = (
         <Box marginLeft={catLeft}>
-          <Raster key={CAT_KEY} columns={CAT_COLUMNS} rows={CAT_ROWS} cells={frameFor(mood, frame)} />
+          {isImageDenied ? (
+            <Raster key={CAT_KEY} columns={CAT_COLUMNS} rows={CAT_ROWS} cells={frameFor(mood, frame)} />
+          ) : (
+            <Image key={CAT_KEY} columns={PICTURE_COLUMNS} rows={PICTURE_ROWS} source={pictureFor($.plugin.root, mood, frame)} alt=" " />
+          )}
         </Box>
       )
     }
