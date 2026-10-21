@@ -1,5 +1,11 @@
 # mattpocock-skills
 
+## 1.3.10
+
+### Patch Changes
+
+- `plan-progress` mod: the illustrated cat now draws under Orca. Since `1.4.0`, Orca showed a blank box where the cat should be: the mod handed the terminal each frame's file path, Orca's terminal refused to read a file (`EINVAL: file transmission failed`), and the refusal never reached the mod, so the band did not switch back to the pixel cat either. The mod now reads the eight PNGs once when the session starts and sends the terminal their bytes. If the frames cannot be read, the band keeps the pixel cat. Where a picture is still refused, a dim `=^.^=` shows in its place instead of a blank box. The mod moves from `1.4.0` to `1.4.1`.
+
 ## 1.3.9
 
 ### Patch Changes
