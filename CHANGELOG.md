@@ -1,5 +1,11 @@
 # mattpocock-skills
 
+## 1.3.9
+
+### Patch Changes
+
+- `plan-progress` mod: where the terminal draws pictures, the cat above the current task is now an illustration instead of half-block pixels. It pounces through eight frames every 175ms while the plan runs and crouches when the plan is blocked or done. The frames ship as PNGs under `mods/plan-progress/assets/` and the terminal reads them from disk, so each frame swap is one small command. Where the terminal cannot draw pictures, the first frame swap is denied and the band switches back to the pixel cat for the rest of the session, still red when blocked. Under Orca the picture draws only for a Claude that Orca launched or one started with `CLAUDE_CODE_FORCE_TERMINAL_IMAGES=1`; a `claude` typed into a plain Orca shell keeps the pixel cat. The mod moves from `1.3.5` to `1.4.0`.
+
 ## 1.3.8
 
 ### Patch Changes
