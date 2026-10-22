@@ -245,12 +245,22 @@ test('the Image names a visible alt, so a refused picture still shows a cat', as
 
 test('a terminal that draws the alt instead falls back to the Raster cat', async ($, on) => {
   const { band, blits, clock } = await terminalBand($, on, b => (b.source ? { deny: 'no placeholder images' } : { value: {} }))
-  await clock.advance(200)
+  await clock.advance(1100)
   const types = typesIn(await band.drawn())
   expect(types).toContain('Raster')
   expect(types).not.toContain('Image')
   await clock.advance(200)
   expect(blits.at(-1).cells).toBeDefined()
+})
+
+test('a denial the engine loses while the Image mounts keeps the cat an Image', async ($, on) => {
+  // The first blit can land before the Image has its image id; the engine denies it, then draws the rest.
+  let blitCount = 0
+  const { band, clock } = await terminalBand($, on, () => (++blitCount === 1 ? { deny: 'every 8-bit image id is in use' } : { value: {} }))
+  await clock.advance(1100)
+  const types = typesIn(await band.drawn())
+  expect(types).toContain('Image')
+  expect(types).not.toContain('Raster')
 })
 
 test('a band drawn without a cat sends no blit that could be denied', async ($, on) => {

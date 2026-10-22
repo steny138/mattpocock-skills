@@ -25,6 +25,9 @@ const POLL_MS = 3000
 const CAT_KEY = 'cat'
 // Drawn dim where the picture cannot be, so a refused picture still shows a cat.
 const CAT_ALT = '=^.^='
+// Denials in a row, about a second of frames, before the cat gives up the picture. A lone denial is a race the
+// engine loses while the Image is still mounting (no image id yet) or its sink is busy, not a terminal without pictures.
+const DENIALS_TO_FALL_BACK = 6
 
 const bound = atom({ plugin: 'plan-progress', key: 'bound' } as const, null)
 const tick = atom({ plugin: 'plan-progress', key: 'tick' } as const, 0)
@@ -83,9 +86,10 @@ export const register: Register = on => {
   let bandId: string | null = null
   let frame = 0
   let lastMtime = 0
-  // The cat is an Image once its frames are read, until a blit is denied (the terminal draws its alt instead),
-  // then a Raster for the session. Frames that cannot be read leave it a Raster.
+  // The cat is an Image once its frames are read, until DENIALS_TO_FALL_BACK blits in a row are denied (the terminal
+  // draws its alt instead), then a Raster for the session. Frames that cannot be read leave it a Raster.
   let frames: string[] | null = null
+  let deniedInARow = 0
   let isImageDenied = false
   let isImageChecked = false
   const isPictured = () => frames !== null && !isImageDenied
@@ -108,8 +112,10 @@ export const register: Register = on => {
           // A denial may resolve as { deny } or reject; either way the picture is not shown.
           const result = await $.ui.blit({ requestId: bandId, key: CAT_KEY, source: pictureFor(pictured, mood, frame) })
             .catch((error: unknown) => ({ deny: String(error) }))
-          if (result.deny === undefined) isImageChecked = true
-          else {
+          if (result.deny === undefined) {
+            isImageChecked = true
+            deniedInARow = 0
+          } else if (++deniedInARow >= DENIALS_TO_FALL_BACK) {
             isImageDenied = true
             $.ui.invalidate('ui.render')
           }
