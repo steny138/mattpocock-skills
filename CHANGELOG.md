@@ -1,5 +1,11 @@
 # mattpocock-skills
 
+## 1.3.11
+
+### Patch Changes
+
+- `plan-progress` mod: the illustrated cat no longer drops to the pixel cat for the rest of a session because of one unlucky frame. The mod used to switch to the pixel cat on the first refused frame. Claude Code also refuses a frame that arrives while the picture is still mounting (it has no image id yet), which happens right after the frames load or when the band reappears, so under Orca the cat sometimes fell back for no real reason. The mod now switches only after about a second of frames are refused in a row, and any frame that draws resets the count. A terminal that cannot draw pictures still falls back, about a second later than before. The mod moves from `1.4.1` to `1.4.2`.
+
 ## 1.3.10
 
 ### Patch Changes
