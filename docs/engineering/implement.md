@@ -4,6 +4,8 @@
 
 It does not decide what to build or silently redesign a stale plan. Material deviations and every review finding stop execution and return the decision to you.
 
+It also never executes a plan for a different repository from the session you are in. That session loaded only its own repository's `CLAUDE.md`, hooks, and rules, so `implement` dispatches the plan to a worktree of the repository the plan names instead, where those guardrails load.
+
 ## When to reach for it
 
 You invoke this by typing `/implement` yourself, and the agent won't reach for it on its own. It ships with `disable-model-invocation: true`, so no other skill can call it either. When [ask-matt](https://aihero.dev/skills-ask-matt) or [to-tickets](https://aihero.dev/skills-to-tickets) routes a ticket toward implementation, you first approve its local plan and then invoke `/implement` explicitly against that plan.
@@ -22,13 +24,21 @@ Where the work currently lives decides the step before it:
 
 ## Prerequisites
 
-`implement` first checks which branch is checked out and in which worktree. The approved plan must name that branch and worktree, and normally lives under that worktree's locally ignored `.scratch/`. A plan in another worktree's `.scratch/` is accepted only when it already names this worktree, as [implement-spec](https://aihero.dev/skills-implement-spec) leaves it. The plan stays where it is; `implement` never moves it. It must also identify the workspace, branch, review fixed point, tasks, and test seams. `implement` commits to the branch named by that plan; it does not create or switch branches for you.
+`implement` first checks which branch is checked out and in which worktree. The approved plan must name that branch and worktree, and normally lives under that worktree's locally ignored `.scratch/`. A plan in another worktree's `.scratch/` is accepted only when it already names this worktree, as [implement-spec](https://aihero.dev/skills-implement-spec) leaves it. The plan stays where it is; `implement` never moves it. A plan dispatched from another repository arrives unbound, and the session in its new worktree binds it to that worktree, branch, and `HEAD` without asking, unless that branch is the repository's default branch. It must also identify the workspace, branch, review fixed point, tasks, and test seams. `implement` commits to the branch named by that plan; it does not create or switch branches for you.
 
 The Git index must be empty before execution begins. Pre-existing staged changes are a hard stop because each completed task stages and commits only its own green diff.
 
 ## What one run does
 
-A run follows the approved plan in order:
+The plan's `Repository` decides whether the run executes or dispatches:
+
+| The plan targets… | What happens |
+| --- | --- |
+| The repository you are in (or names none) | The run executes the plan, below |
+| Another repository, and you are inside Orca with that repository registered | A new Orca worktree of it starts its own Claude session running `/implement` on the plan, without asking |
+| Another repository, outside Orca or not registered in Orca | A git worktree is created beside it at `<repo>.worktrees/<slug>`, and the run stops with the `/implement` command to run there |
+
+Either way the dispatching session changes no file, the plan included. An executing run follows the approved plan in order:
 
 1. Validate the plan against the current workspace and resume pointer.
 2. Drive [tdd](https://aihero.dev/skills-tdd) at each pre-agreed seam.
@@ -45,6 +55,14 @@ The local plan document is the seam between planning and execution. It records t
 `implement` protects that seam while it works. It refuses pre-staged changes, stages only the current green task, never commits the locally ignored plan, and checkpoints an interruption before yielding. Non-material deviations continue only after their equivalence is verified and recorded; changes to scope, behavior, architecture responsibility, or test seams stop for approval.
 
 ## Common questions
+
+**My plan changes another repository. Why didn't it just make the edits?**
+
+Because the edits would run under the wrong rules. A session only loads the `CLAUDE.md`, hooks, and rules of the repository it started in, so editing a second repository from it silently bypasses that repository's guardrails. Dispatching costs one extra session and buys the right ones. When the change spans repositories, [to-plan](https://aihero.dev/skills-to-plan) writes one plan per repository, and each is dispatched on its own.
+
+**It refused to bind a dispatched plan on `main`. Why?**
+
+Binding there would commit every task straight onto the default branch. Switch to a feature branch (or let dispatch create the worktree) and run it again.
 
 **It stopped instead of adapting the plan. Is that expected?**
 
@@ -76,6 +94,7 @@ No. Completion updates the local plan and commits the implementation; tracker st
 - Every completed task has evidence and a commit.
 - Another agent can resume at `Resume Here`.
 - Review runs once, and every finding is fixed or waived before completion.
+- A plan for another repository shows up as a new worktree of that repository, and nothing changes in the one you ran it from.
 - `.scratch` never enters Git.
 
 ## Where it fits
