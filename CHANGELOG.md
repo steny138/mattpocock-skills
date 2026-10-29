@@ -1,5 +1,11 @@
 # mattpocock-skills
 
+## 1.3.12
+
+### Patch Changes
+
+- `implement` no longer edits another repository from the session you run it in. That session loaded only its own repository's `CLAUDE.md`, hooks, and rules, so a plan for a second repository used to run without that repository's guardrails. Every plan now names its target `Repository`, and a plan for another repository is dispatched instead: inside Orca, with the target registered, a new Orca worktree of it starts its own Claude session running `/implement` on the plan; otherwise a git worktree is created beside it at `<repo>.worktrees/<slug>` and the run stops with the command to run there. The session in that worktree binds the plan without asking, except on the repository's default branch. `to-plan` writes one plan per target repository for a change that spans several, approved together.
+
 ## 1.3.11
 
 ### Patch Changes
