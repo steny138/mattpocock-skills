@@ -18,9 +18,20 @@ First match the plan's repository. Its `**Repository:**` names the main checkout
 
 #### Dispatch
 
-Create a worktree of the target repository for the plan:
+`<slug>` is the plan's file name without `-plan.md`.
 
-- **Path:** `<parent of Repository>/<Repository folder name>.worktrees/<slug>`, where `<slug>` is the plan's file name without `-plan.md`.
+Inside Orca (`TERM_PROGRAM` is `Orca` and `command -v orca` succeeds), check that Orca knows the target: `orca repo show --repo path:<Repository> --json` returns `"ok": true` (it exits 0 either way). When it does, hand the plan to a new Orca worktree with its own Claude session, without asking:
+
+```bash
+orca worktree create --repo path:<Repository> --name <slug> --no-parent \
+  --agent claude --prompt "/implement <absolute plan path>" --json
+```
+
+Add `--base-branch <Base>` only when the plan has a `**Base:**`; otherwise Orca uses the repository's default base. Report the worktree it created and stop. When the command or its agent launch fails, stop and report the error with any `operationId`, which the user can pass to `--retry-launch`; a git worktree beside a half-created Orca one would duplicate it.
+
+Outside Orca, or when Orca does not know the target, create a git worktree of the target repository for the plan:
+
+- **Path:** `<parent of Repository>/<Repository folder name>.worktrees/<slug>`.
 - **Branch:** a new branch named `<slug>`.
 - **Base:** the plan's `**Base:**` when present, else the target's `origin/HEAD`, else the branch its main checkout has checked out. Use refs already present locally; dispatch never fetches.
 
