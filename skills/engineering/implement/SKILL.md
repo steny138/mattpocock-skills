@@ -14,7 +14,21 @@ Execute one approved implementation plan to completion or a hard stop. The plan 
 
 Require the user to identify the plan. Read it, every source it points to, the applicable agent instructions, and the current repository state.
 
-Before editing code, confirm:
+First match the plan's repository. Its `**Repository:**` names the main checkout of the repository it changes; a plan without the field targets the current repository. The current repository's main checkout is the parent of `git rev-parse --path-format=absolute --git-common-dir`. When the two differ, dispatch the plan as described below and end the run there: this session leaves every file as it found it, the plan included, because only a session started inside the target repository loads that repository's own agent instructions, hooks, and rules.
+
+#### Dispatch
+
+Create a worktree of the target repository for the plan:
+
+- **Path:** `<parent of Repository>/<Repository folder name>.worktrees/<slug>`, where `<slug>` is the plan's file name without `-plan.md`.
+- **Branch:** a new branch named `<slug>`.
+- **Base:** the plan's `**Base:**` when present, else the target's `origin/HEAD`, else the branch its main checkout has checked out. Use refs already present locally; dispatch never fetches.
+
+Report the worktree path and the command to run there, `/implement <absolute plan path>`. The session started in that worktree binds the plan.
+
+#### Challenge
+
+When the plan targets the current repository, before editing code, confirm:
 
 - the plan belongs to this workspace and branch;
 - its review fixed point resolves;
