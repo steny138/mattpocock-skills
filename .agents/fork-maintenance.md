@@ -120,7 +120,9 @@ same workspace but must never be staged or committed.
 Every plan records at least:
 
 - its source and work-item contract;
-- workspace, branch, and review fixed point;
+- its target repository (`**Repository:**`), and an optional `**Base:**`;
+- workspace, branch, and review fixed point (`unbound (dispatch)` for a plan
+  whose target is another repository);
 - confirmed test seams and constraints;
 - independently verifiable and committable tasks;
 - verification evidence and commit SHAs;
@@ -139,6 +141,8 @@ local plan and validates that plan against the current workspace before editing.
 
 The following invariants are mandatory:
 
+- The plan's repository is matched first. A plan for another repository is
+  dispatched (divergence 10) and never executed in the current session.
 - The current branch and the worktree it is checked out in are located first;
   the plan names both and lives under that worktree's `.scratch/`, or under
   another worktree's `.scratch/` only when it already names this worktree. The
@@ -360,6 +364,46 @@ Required supporting surfaces:
 - `README.md`
 - `skills/engineering/README.md`
 
+### 10. Plans are per repository and dispatched into it
+
+Upstream has no notion of a plan's repository: an agent executes every edit
+from the session it is in. This fork binds each plan to one repository:
+
+- `to-plan` writes one plan per target repository, all in one invocation and
+  one approval, each with a required `**Repository:**` (the target's main
+  checkout) and an optional `**Base:**`. A plan for another repository is
+  written `unbound (dispatch)` and `to-plan` only verifies that its path is a
+  git main checkout.
+- `implement` matches `**Repository:**` against the current repository's main
+  checkout before anything else. On a mismatch it changes no file, the plan
+  included, and dispatches. Inside Orca (`TERM_PROGRAM=Orca` and an `orca` CLI)
+  with the target registered, it runs `orca worktree create --repo path:...
+  --agent claude --prompt "/implement <plan>"` without asking, and stops with
+  the `operationId` on failure. Otherwise it creates a git worktree at
+  `<repo>.worktrees/<slug>` on branch `<slug>` (base: `**Base:**`, else
+  `origin/HEAD`, else the main checkout's branch, never fetching) and stops
+  with the command to run there.
+- A plan arriving `unbound (dispatch)` in its target repository is bound to
+  the current worktree, branch, and `HEAD` without asking, except on the
+  repository's default branch, where it is checkpointed blocked.
+- A plan without `**Repository:**` targets the current repository.
+
+Decision reason: a session loads only the `CLAUDE.md`, hooks, and rules of the
+repository it started in. Executing a cross-repository plan from one session
+silently bypasses the other repository's guardrails, and the existing "touch
+another repository outside the plan" stop never fires because that repository
+is inside the plan. `implement-spec` stays single-repository.
+
+Primary implementation:
+
+- `skills/engineering/to-plan/SKILL.md`
+- `skills/engineering/implement/SKILL.md`
+
+Required supporting surfaces:
+
+- `docs/engineering/to-plan.md`
+- `docs/engineering/implement.md`
+
 ## What may follow upstream
 
 Upstream remains authoritative for all behaviour this contract does not
@@ -420,7 +464,12 @@ with it, so keep the omission check while absorbing the rest.
 `skills/engineering/diagnosing-bugs/SKILL.md`
 and `docs/engineering/diagnosing-bugs.md` carry divergence 9 since 2026-10-19;
 an upstream edit to Phase 5 or Phase 6, or to the page's phase count, will
-conflict with it, so keep Phase 7 while absorbing the rest. Git also auto-merged a duplicated paragraph in
+conflict with it, so keep Phase 7 while absorbing the rest.
+`skills/engineering/to-plan/SKILL.md`, `skills/engineering/implement/SKILL.md`,
+and their docs pages carry divergence 10 since 2026-10-29; an upstream edit to
+`to-plan`'s plan template or to `implement`'s first step will conflict with
+it, so keep the repository match, dispatch, and unbound binding while
+absorbing the rest. Git also auto-merged a duplicated paragraph in
 `docs/engineering/to-tickets.md` after upstream reordered its questions, so
 scan resolved docs for duplicated lines.
 
@@ -608,3 +657,18 @@ instances as `needs-triage` issues after the user approves each draft
 (divergence 9). It ships together with divergence 8, the `to-spec`
 omission check released as `1.3.7`. The plugin version
 was bumped by hand to `1.3.8`.
+
+### 2026-10-29: Dispatch cross-repository plans
+
+Working in Orca, a spec or plan often spans repositories, and `/implement`
+then edited every repository from one session, under only that session's
+repository's `CLAUDE.md`, hooks, and rules. Plans now name one target
+repository, `to-plan` writes one per repository, and `implement` dispatches a
+foreign plan into a worktree of its repository: an Orca worktree with its own
+Claude session inside Orca, a git worktree otherwise (divergence 10). Verified
+by replaying `/implement` with `claude -p --plugin-dir` against throwaway
+repositories (several runs per case, since single runs passed by inference
+before the binding rule was written) and by one real Orca dispatch into the
+fork repository. An explicit duplicate-dispatch rule was dropped because the
+agent already refused both duplicate shapes without one. The plugin version
+was bumped by hand to `1.3.12`.

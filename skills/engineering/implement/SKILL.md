@@ -14,7 +14,32 @@ Execute one approved implementation plan to completion or a hard stop. The plan 
 
 Require the user to identify the plan. Read it, every source it points to, the applicable agent instructions, and the current repository state.
 
-Before editing code, confirm:
+First match the plan's repository. Its `**Repository:**` names the main checkout of the repository it changes; a plan without the field targets the current repository. The current repository's main checkout is the parent of `git rev-parse --path-format=absolute --git-common-dir`. When the two differ, dispatch the plan as described below and end the run there: this session leaves every file as it found it, the plan included, because only a session started inside the target repository loads that repository's own agent instructions, hooks, and rules.
+
+#### Dispatch
+
+`<slug>` is the plan's file name without `-plan.md`.
+
+Inside Orca (`TERM_PROGRAM` is `Orca` and `command -v orca` succeeds), check that Orca knows the target: `orca repo show --repo path:<Repository> --json` returns `"ok": true` (it exits 0 either way). When it does, hand the plan to a new Orca worktree with its own Claude session, without asking:
+
+```bash
+orca worktree create --repo path:<Repository> --name <slug> --no-parent \
+  --agent claude --prompt "/implement <absolute plan path>" --json
+```
+
+Add `--base-branch <Base>` only when the plan has a `**Base:**`; otherwise Orca uses the repository's default base. Report the worktree it created and stop. When the command or its agent launch fails, stop and report the error with any `operationId`, which the user can pass to `--retry-launch`; a git worktree beside a half-created Orca one would duplicate it.
+
+Outside Orca, or when Orca does not know the target, create a git worktree of the target repository for the plan:
+
+- **Path:** `<parent of Repository>/<Repository folder name>.worktrees/<slug>`.
+- **Branch:** a new branch named `<slug>`.
+- **Base:** the plan's `**Base:**` when present, else the target's `origin/HEAD`, else the branch its main checkout has checked out. Use refs already present locally; dispatch never fetches.
+
+Report the worktree path and the command to run there, `/implement <absolute plan path>`. The session started in that worktree binds the plan.
+
+#### Challenge
+
+When the plan targets the current repository, before editing code, confirm:
 
 - the plan belongs to this workspace and branch;
 - its review fixed point resolves;
@@ -23,7 +48,9 @@ Before editing code, confirm:
 - unrelated working-tree changes can be preserved;
 - the index has no pre-existing staged changes (`git diff --cached` is empty).
 
-Start by locating the current branch: `git branch --show-current` and `git rev-parse --show-toplevel` give the branch and the worktree it is checked out in, and the plan's `**Branch:**` and `**Workspace:**` must name them. The plan normally lives under that worktree's locally ignored `.scratch/`. A plan under another worktree's `.scratch/` is valid only when its `**Workspace:**` already names this worktree, as `/implement-spec` leaves it after rebinding. Work on the plan where it is; never move or copy it. When `**Workspace:**` or `**Branch:**` does not match (a plan written before this rule may name the main repository root), ask the user whether to rebind the plan to this worktree and branch; if they agree, update the fields and record the rebinding under `## Deviations`.
+Start by locating the current branch: `git branch --show-current` and `git rev-parse --show-toplevel` give the branch and the worktree it is checked out in, and the plan's `**Branch:**` and `**Workspace:**` must name them. The plan normally lives under that worktree's locally ignored `.scratch/`. A plan under another worktree's `.scratch/` is valid only when its `**Workspace:**` already names this worktree, as `/implement-spec` leaves it after rebinding. Work on the plan where it is; never move or copy it. When `**Workspace:**` or `**Branch:**` names some other worktree or branch (a plan written before this rule may name the main repository root), ask the user whether to rebind the plan to this worktree and branch; if they agree, update the fields and record the rebinding under `## Deviations`.
+
+A dispatched plan arrives with `**Workspace:**` set to `unbound (dispatch)` and may live under another repository's `.scratch/`. Bind it without asking: set `**Workspace:**` and `**Branch:**` to this worktree and branch, set `**Review fixed point:**` to the current `HEAD` before any edit, and record the binding under `## Deviations`. On the repository's default branch (`origin/HEAD`, or `main` or `master` without a remote), leave the plan unbound instead: checkpoint it as blocked and ask the user for a feature branch to run it on.
 
 If the plan has a material gap, a stale core assumption, a path that fails those location rules, or pre-existing staged changes, checkpoint it as blocked and ask the user. Never unstage or absorb the user's staged work, and do not silently redesign the plan.
 
