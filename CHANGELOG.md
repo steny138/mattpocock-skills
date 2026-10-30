@@ -1,5 +1,11 @@
 # mattpocock-skills
 
+## 1.3.13
+
+### Patch Changes
+
+- `plan-progress` mod: the illustrated cat no longer drops to the pixel cat for the rest of a session after you answer an AskUserQuestion. While the question is open it takes the band, so every frame the mod sent was refused, and a question left open for more than about a second used up the allowance of refused frames. Once the picture has drawn even one frame, the terminal is known to draw pictures, so refused frames no longer switch the cat. A terminal that never draws a frame still falls back as before. The mod moves from `1.4.2` to `1.4.3`.
+
 ## 1.3.12
 
 ### Patch Changes
