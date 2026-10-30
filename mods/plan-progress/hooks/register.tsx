@@ -27,6 +27,8 @@ const CAT_KEY = 'cat'
 const CAT_ALT = '=^.^='
 // Denials in a row, about a second of frames, before the cat gives up the picture. A lone denial is a race the
 // engine loses while the Image is still mounting (no image id yet) or its sink is busy, not a terminal without pictures.
+// Once a blit has drawn, no run of denials counts: the terminal draws pictures, and a dialog that takes the band (an
+// AskUserQuestion) leaves the clock blitting an Image that is not mounted for as long as it is open.
 const DENIALS_TO_FALL_BACK = 6
 
 const bound = atom({ plugin: 'plan-progress', key: 'bound' } as const, null)
@@ -86,8 +88,8 @@ export const register: Register = on => {
   let bandId: string | null = null
   let frame = 0
   let lastMtime = 0
-  // The cat is an Image once its frames are read, until DENIALS_TO_FALL_BACK blits in a row are denied (the terminal
-  // draws its alt instead), then a Raster for the session. Frames that cannot be read leave it a Raster.
+  // The cat is an Image once its frames are read, until DENIALS_TO_FALL_BACK blits in a row are denied before any has
+  // drawn (the terminal draws its alt instead), then a Raster for the session. Frames that cannot be read leave it a Raster.
   let frames: string[] | null = null
   let deniedInARow = 0
   let isImageDenied = false
@@ -115,7 +117,7 @@ export const register: Register = on => {
           if (result.deny === undefined) {
             isImageChecked = true
             deniedInARow = 0
-          } else if (++deniedInARow >= DENIALS_TO_FALL_BACK) {
+          } else if (++deniedInARow >= DENIALS_TO_FALL_BACK && !isImageChecked) {
             isImageDenied = true
             $.ui.invalidate('ui.render')
           }

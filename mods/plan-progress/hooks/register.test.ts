@@ -263,6 +263,16 @@ test('a denial the engine loses while the Image mounts keeps the cat an Image', 
   expect(types).not.toContain('Raster')
 })
 
+test('a cat that has drawn stays an Image through a dialog that takes the band', async ($, on) => {
+  // An AskUserQuestion takes the band without a render the mod hears, so every blit while it is open is denied.
+  let blitCount = 0
+  const { band, clock } = await terminalBand($, on, () => (++blitCount === 1 ? { value: {} } : { deny: 'not mounted' }))
+  await clock.advance(2000)
+  const types = typesIn(await band.drawn())
+  expect(types).toContain('Image')
+  expect(types).not.toContain('Raster')
+})
+
 test('a band drawn without a cat sends no blit that could be denied', async ($, on) => {
   const clock = mock.clock(on, { now: 1_000 })
   const blits: any[] = []
