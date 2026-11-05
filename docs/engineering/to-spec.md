@@ -27,7 +27,7 @@ The spec exists because context windows end. You settled many things while [gril
 
 So the spec does not validate or decide anything. It records what you decided, in your project's own vocabulary, so a fresh session can pick up the work without you explaining it again. If the spec states something you never said, that is a defect.
 
-Each requirement keeps its **provenance**: a fact, something you stated, or an agent proposal you accepted, which the spec marks `(agent proposal)` so a later reader knows you chose it from a list rather than asked for it. A failure that has not happened, and that none of your goals needs handled, is a **risk**: it goes under Further Notes, not into the stories or decisions.
+Each requirement keeps its **provenance**: a fact, something you stated, or an agent proposal you accepted. An accepted proposal is an agreed requirement, marked `(agent proposal)` so a later reader knows you chose it from a list rather than asked for it. A failure that has not happened is a **risk**, unless a goal you agreed cannot be met without handling it or you took its mitigation into scope: it goes under Further Notes with its condition and evidence, not into the stories or decisions.
 
 ## Seams before prose
 
@@ -42,7 +42,7 @@ The agent that writes the spec has seen the whole conversation, and that is why 
 | Omission | How it is caught | What happens |
 | --- | --- | --- |
 | Settled in the conversation, missing from the spec | The agent lists every decision the conversation settled and finds where the spec records each one | A missing decision is added without asking, since you already made it |
-| Never discussed at all | A [subagent](https://www.aihero.dev/ai-coding-dictionary/subagent) that has the spec and the repository, but not the conversation, lists what it would need to ask before planning | An answer the conversation already holds goes into the spec; a question that would change scope, behaviour, architecture, or a seam is asked of you; a question that only probes a risk with no incident, code path, or stated goal behind it is listed as a risk; the rest are dropped |
+| Never discussed at all | A [subagent](https://www.aihero.dev/ai-coding-dictionary/subagent) that has the spec and the repository, but not the conversation, lists what it would need to ask before planning | An answer the conversation already holds goes into the spec; a question about a risk mitigation outside the agreed scope is listed as a risk, however well the code supports the risk; a question needed to complete the agreed scope that would change scope, behaviour, architecture, or a seam is asked of you; the rest are dropped |
 
 When nothing is missing, the check costs you one line of output. It makes the spec more complete, not more correct: it confirms your decisions were written down, and does not second-guess them.
 
@@ -83,7 +83,7 @@ Pass `.scratch/<feature>/spec.md` explicitly. The fixed local path avoids tracke
 - It shows you the seams before it writes, and proposes as few as it can.
 - It uses your project's nouns, not generic product-management boilerplate.
 - You remember making every decision in it. It invented nothing to fill a section, and every requirement you picked from the agent's suggestions is marked `(agent proposal)`.
-- Failures that have not happened sit under Further Notes as risks, not as stories or decisions.
+- Failures that have not happened sit under Further Notes as risks, with their condition and evidence, unless a goal you agreed needs them handled or you took their mitigation into scope.
 - It tells you how many decisions its omission check added, and any question it asks you would change scope, behaviour, architecture, or a seam.
 - The out-of-scope section lists real things. The things you refused are usually the most useful lines on the page.
 

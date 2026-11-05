@@ -413,25 +413,31 @@ branch or a requirement. This fork adds:
 
 - `grilling` grows the tree only inside the user's scope, and each branch has
   provenance: a verified fact, a goal or constraint the user stated, or an
-  agent proposal labelled as such. An unstated goal (an SLA) may be asked
-  openly, with no default that adds it. A failure that has not happened is a
-  risk, listed once for the user, unless a stated goal cannot be met without
-  handling it. Recommendations aim at the smallest answer that meets the
-  stated goals and name the cost of added scope. The completion bound becomes
-  "every branch with provenance visited, every risk listed".
-- `to-spec` carries that provenance, marks accepted agent proposals
-  `(agent proposal)`, bounds user stories to the agreed scope, writes risks
-  under Further Notes, and its omission check lists a question that only
-  probes such a risk as a risk instead of asking the user.
+  agent proposal labelled as such. An accepted proposal becomes an agreed
+  goal and keeps that label. An unstated goal (an SLA) may be asked as a
+  discovery question, marked `➡️ open: no default`, with no recommended
+  target. A failure that has not happened is a risk, listed once for the
+  user, until an agreed goal cannot be met without handling it or the user
+  takes it into scope. Other recommendations aim at the smallest answer that
+  meets the agreed goals and name the cost of added scope. The completion
+  bound becomes "every branch with provenance visited, every risk listed".
+- `to-spec` carries that provenance, treats accepted agent proposals as
+  agreed requirements marked `(agent proposal)`, bounds user stories to the
+  agreed scope, and writes risks under Further Notes with their condition and
+  evidence. Its omission check lists any question about a risk mitigation
+  outside the agreed scope as a risk, however well the code supports the
+  risk, and asks the user only questions needed to complete the agreed scope.
 
 Decision reason: the user accepts recommended options most of the time, so the
 agent's choice of questions sets the scope. On 2026-11-02 a grilling session
-that started from one SMTP incident proposed a 15-minute SLA, Azure Monitor
-alerting, and a rule that waiting must not consume retries; each was accepted
-as recommended, and the last ruled out the framework's built-in lock, so the
-result was a custom Redis gate, state-rewriting filter, capacity estimator, and
-operations tree (about 2,700 lines). A later session framed by the same
-incident shipped two small changes. Asking about goals stays allowed, so the
+that started from one SMTP incident proposed a 15-minute target and Azure
+Monitor alerting, and the user selected both as recommended. The spec the
+agent then wrote also introduced the rule that waiting must not count as a
+send attempt, which no question had put to the user; it ruled out using the
+framework's built-in lock as is, and the agent chose a custom Redis gate,
+state-rewriting filter, capacity estimator, and operations tree. That fix
+added 2,699 lines across 35 files; a later session framed by the same
+incident added 83 lines across 3. Discovery questions stay allowed, so the
 skill can still find a real SLA the user holds.
 
 Primary implementation:
@@ -721,16 +727,18 @@ was bumped by hand to `1.3.12`.
 ### 2026-11-05: Give requirements provenance and list unobserved failures as risks
 
 Two sessions, one Codex and one Claude, planned a fix for the same Office 365
-`4.3.2 Concurrent connections limit exceeded` incident and differed by two
-orders of magnitude in size. Comparing their transcripts showed the gap came
-from the questions, not the answers: the first started from an open "how
-should we plan this" and its grilling proposed an SLA, alerting, and retry
-rules that the user accepted as recommended; the second started from "this PR
-does too much" and asked only scope questions. Both agents agreed the rule
+`4.3.2 Concurrent connections limit exceeded` incident: one added 2,699 lines
+across 35 files, the other 83 lines across 3. Comparing their transcripts
+showed the gap came from the questions and the spec, not the user's answers:
+the first started from an open "how should we plan this", its grilling
+proposed an SLA and alerting that the user accepted as recommended, and its
+spec added a retry rule no question had raised; the second started from "this
+PR does too much" and asked only scope questions. Both agents agreed the rule
 belongs in `grilling` and `to-spec`, where requirements are born, rather than
 in either harness's global instructions or one agent's memory, since both
 harnesses load this plugin (divergence 11). Codex's review sharpened the rule:
-an unobserved failure still becomes a requirement when a stated goal needs
-it, a stated or askable goal (an SLA) needs no incident, and accepting a
-recommendation does not make the requirement the user's. The plugin version
-was bumped by hand to `1.3.14`.
+an unobserved failure still becomes a requirement when an agreed goal needs
+it or the user takes it into scope, a stated or askable goal (an SLA) needs no
+incident, an accepted proposal is an agreed requirement that keeps its agent
+origin, and a code path behind a risk shows it is real, not that this change
+must handle it. The plugin version was bumped by hand to `1.3.14`.

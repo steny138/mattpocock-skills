@@ -6,7 +6,7 @@ disable-model-invocation: true
 
 This skill takes the current conversation context and codebase understanding and produces a spec. Do not reopen requirements discovery or interview the user for new product decisions. Synthesize what you already know. The only user exchanges are confirming the proposed test seams before writing, and answering any open questions the omission check in step 4 surfaces.
 
-Carry each requirement's **provenance** from the conversation: a verified fact, a goal or constraint the user stated, or an agent proposal the user accepted, marked `(agent proposal)`. A failure that has not happened, and that no stated goal needs handled, is a **risk**: list it under Further Notes, outside the stories and decisions.
+Carry each requirement's **provenance** from the conversation: a verified fact, a goal or constraint the user stated, or an agent proposal the user accepted, which is an agreed requirement marked `(agent proposal)`. A failure that has not happened is a **risk** unless an agreed goal cannot be met without handling it or the user took its mitigation into scope: list it under Further Notes with its condition and evidence, outside the stories and decisions.
 
 ## Process
 
@@ -95,8 +95,8 @@ Any further notes about the feature.
    **Questions never asked.** Spawn a sub-agent with the spec path and repository access, and none of the conversation. Ask it for the questions it would need answered before it could plan the implementation. Sort each one:
 
    - Answered in the conversation: the spec missed it. Add the answer to the spec.
-   - Unanswered, and the answer would change scope, externally observable behavior, architecture, or a test seam: an open question. Ask the user, then write the answer into the spec.
-   - Probing only a risk, a failure with no incident, code path, or stated goal behind it: list it under Further Notes as a risk.
+   - Probing a risk mitigation outside the agreed scope, however well the code supports the risk: list it under Further Notes as a risk, with its condition and evidence.
+   - Unanswered, needed to complete the agreed scope, and the answer would change scope, externally observable behavior, architecture, or a test seam: an open question. Ask the user, then write the answer into the spec.
    - Anything else: drop it.
 
 5. Show the user the spec path, the confirmed test seams, and the omission check's result: how many decisions you added, and each open question with its answer. Do not create, edit, label, or comment on an issue as part of this skill.
