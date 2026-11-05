@@ -42,7 +42,7 @@ The agent that writes the spec has seen the whole conversation, and that is why 
 | Omission | How it is caught | What happens |
 | --- | --- | --- |
 | Settled in the conversation, missing from the spec | The agent lists every decision the conversation settled and finds where the spec records each one | A missing decision is added without asking, since you already made it |
-| Never discussed at all | A [subagent](https://www.aihero.dev/ai-coding-dictionary/subagent) that has the spec and the repository, but not the conversation, lists what it would need to ask before planning | An answer the conversation already holds goes into the spec; a question about a risk mitigation outside the agreed scope is listed as a risk, however well the code supports the risk; a question needed to complete the agreed scope that would change scope, behaviour, architecture, or a seam is asked of you; the rest are dropped |
+| Never discussed at all | A [subagent](https://www.aihero.dev/ai-coding-dictionary/subagent) that has the spec and the repository, but not the conversation, lists what it would need to ask before planning | An answer the conversation already holds goes into the spec; a question about an optional risk mitigation outside the agreed scope, one no agreed goal requires, is listed as a risk, however well the code supports the risk; a question needed to complete the agreed scope that would change scope, behaviour, architecture, or a seam is asked of you; the rest are dropped |
 
 When nothing is missing, the check costs you one line of output. It makes the spec more complete, not more correct: it confirms your decisions were written down, and does not second-guess them.
 

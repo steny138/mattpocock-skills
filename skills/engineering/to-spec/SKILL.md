@@ -95,7 +95,7 @@ Any further notes about the feature.
    **Questions never asked.** Spawn a sub-agent with the spec path and repository access, and none of the conversation. Ask it for the questions it would need answered before it could plan the implementation. Sort each one:
 
    - Answered in the conversation: the spec missed it. Add the answer to the spec.
-   - Probing a risk mitigation outside the agreed scope, however well the code supports the risk: list it under Further Notes as a risk, with its condition and evidence.
+   - Probing an optional risk mitigation outside the agreed scope, one no agreed goal requires, however well the code supports the risk: list it under Further Notes as a risk, with its condition and evidence.
    - Unanswered, needed to complete the agreed scope, and the answer would change scope, externally observable behavior, architecture, or a test seam: an open question. Ask the user, then write the answer into the spec.
    - Anything else: drop it.
 

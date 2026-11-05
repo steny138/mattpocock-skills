@@ -414,7 +414,7 @@ branch or a requirement. This fork adds:
 - `grilling` grows the tree only inside the user's scope, and each branch has
   provenance: a verified fact, a goal or constraint the user stated, or an
   agent proposal labelled as such. An accepted proposal becomes an agreed
-  goal and keeps that label. An unstated goal (an SLA) may be asked as a
+  decision or requirement and keeps that label. An unstated goal (an SLA) may be asked as a
   discovery question, marked `➡️ open: no default`, with no recommended
   target. A failure that has not happened is a risk, listed once for the
   user, until an agreed goal cannot be met without handling it or the user
@@ -424,9 +424,10 @@ branch or a requirement. This fork adds:
 - `to-spec` carries that provenance, treats accepted agent proposals as
   agreed requirements marked `(agent proposal)`, bounds user stories to the
   agreed scope, and writes risks under Further Notes with their condition and
-  evidence. Its omission check lists any question about a risk mitigation
-  outside the agreed scope as a risk, however well the code supports the
-  risk, and asks the user only questions needed to complete the agreed scope.
+  evidence. Its omission check lists any question about an optional risk
+  mitigation outside the agreed scope, one no agreed goal requires, as a
+  risk, however well the code supports the risk, and asks the user only
+  questions needed to complete the agreed scope.
 
 Decision reason: the user accepts recommended options most of the time, so the
 agent's choice of questions sets the scope. On 2026-11-02 a grilling session
