@@ -28,6 +28,8 @@ Inside a round, every question has a fixed format: numbered and titled behind a 
 
 The other half of the design is the split between facts and decisions. Facts are the skill's own job. When a frontier question needs something the [environment](https://www.aihero.dev/ai-coding-dictionary/environment) can settle, the agent dispatches a [sub-agent](https://www.aihero.dev/ai-coding-dictionary/subagent) to find out rather than asking you. The round does not wait for that research; only the questions that depend on it wait. Decisions are yours, and the agent must wait for them. An agent running `grilling` that answers its own decisions has broken the skill. The session ends when the frontier is empty. The agent then waits for you to confirm a shared understanding before it acts on what you agreed.
 
+The tree also has an edge: the scope you set. Every branch needs **provenance**, meaning a verified fact (an incident, the code, a protocol), a goal or constraint you stated, or a proposal the agent labels as its own. A failure that has not happened is a **risk**, not a branch, unless a goal you stated cannot be met without handling it. The agent lists risks once, for you to take on or leave, instead of turning each into a question whose recommended answer adds a mechanism. It can still ask about a goal you have not stated, such as a deadline or an SLA, but it asks openly and does not recommend adding one by default. Recommendations aim at the smallest answer that meets your stated goals, and any that adds scope names its cost.
+
 The frontier has one limit. The agent chooses it by judgement; it does not compute it from a graph. So it can put two questions in one round and only later find that one answer should have changed the other. The only guard is to tell it. That reopens the affected branch in the next round.
 
 ## What lives here and what lives in the wrappers
@@ -63,6 +65,9 @@ The confirmation gate exists for this. The skill is finished when you say the un
 **It answered its own questions instead of asking me.**
 That is a bug in the run, and it is the reason the skill's text separates facts from decisions. It happens most when another skill runs `grilling` to resolve a ticket, and the agent takes that task as permission to keep moving. The same constraint is why there is no async mode. People have asked for a variant that reads a GitHub issue and posts one consolidated decision memo, and that is a different skill, because a grilling session that nobody answers has produced the agent's opinion rather than yours.
 
+**Why did it list risks at the end instead of asking me about each one?**
+Because you tend to accept recommendations, so the questions an agent chooses to ask decide the scope. In this fork a session that started from one incident grew a 15-minute SLA, external alerting, and a custom distributed lock out of questions the agent proposed, each answered with its recommended option, while the incident needed two small changes. A risk with no incident, code path, or stated goal behind it is now listed for you to take on, not asked as a decision with a recommendation that adds work. Take one on and it becomes a branch like any other.
+
 **Can I cap the number of questions?**
 No, and a cap is out of scope on purpose. Some plans need three questions and some need fifty; a fixed ceiling either truncates the hard case or feels arbitrary on the easy one. The intended control is plain language. Tell it to wrap up, or stop and accept the plan where it stands. If a session is running very long, the cause is usually that the scope was too big; break the work up and grill the pieces.
 
@@ -79,6 +84,8 @@ This is a real bug, still unfixed, and users report it across [harnesses](https:
 - Later rounds ask things the first round could not have asked.
 - It goes and looks facts up (reading files, dispatching a sub-agent) rather than asking you something it could have found out.
 - Research running in the background does not stall the round; only the questions that depend on it wait.
+- You can tell where each question came from: a fact it found, something you said, or its own proposal, marked as such.
+- Failures that have not happened arrive as a list of risks, not as questions recommending new mechanisms.
 - It stops at the end and asks you to confirm the understanding is shared, instead of starting work.
 - Question count stays high while round count stays low.
 

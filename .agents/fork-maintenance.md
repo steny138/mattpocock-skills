@@ -404,6 +404,46 @@ Required supporting surfaces:
 - `docs/engineering/to-plan.md`
 - `docs/engineering/implement.md`
 
+### 11. Requirements carry provenance; unobserved failures are risks
+
+Upstream's `grilling` walks every branch until the frontier is empty and
+recommends an answer to each question, and upstream's `to-spec` asks for user
+stories covering "all aspects of the feature". Neither bounds what may become a
+branch or a requirement. This fork adds:
+
+- `grilling` grows the tree only inside the user's scope, and each branch has
+  provenance: a verified fact, a goal or constraint the user stated, or an
+  agent proposal labelled as such. An unstated goal (an SLA) may be asked
+  openly, with no default that adds it. A failure that has not happened is a
+  risk, listed once for the user, unless a stated goal cannot be met without
+  handling it. Recommendations aim at the smallest answer that meets the
+  stated goals and name the cost of added scope. The completion bound becomes
+  "every branch with provenance visited, every risk listed".
+- `to-spec` carries that provenance, marks accepted agent proposals
+  `(agent proposal)`, bounds user stories to the agreed scope, writes risks
+  under Further Notes, and its omission check lists a question that only
+  probes such a risk as a risk instead of asking the user.
+
+Decision reason: the user accepts recommended options most of the time, so the
+agent's choice of questions sets the scope. On 2026-11-02 a grilling session
+that started from one SMTP incident proposed a 15-minute SLA, Azure Monitor
+alerting, and a rule that waiting must not consume retries; each was accepted
+as recommended, and the last ruled out the framework's built-in lock, so the
+result was a custom Redis gate, state-rewriting filter, capacity estimator, and
+operations tree (about 2,700 lines). A later session framed by the same
+incident shipped two small changes. Asking about goals stays allowed, so the
+skill can still find a real SLA the user holds.
+
+Primary implementation:
+
+- `skills/productivity/grilling/SKILL.md`
+- `skills/engineering/to-spec/SKILL.md`
+
+Required supporting surfaces:
+
+- `docs/productivity/grilling.md`
+- `docs/engineering/to-spec.md`
+
 ## What may follow upstream
 
 Upstream remains authoritative for all behaviour this contract does not
@@ -469,6 +509,11 @@ conflict with it, so keep Phase 7 while absorbing the rest.
 and their docs pages carry divergence 10 since 2026-10-29; an upstream edit to
 `to-plan`'s plan template or to `implement`'s first step will conflict with
 it, so keep the repository match, dispatch, and unbound binding while
+absorbing the rest. `skills/productivity/grilling/SKILL.md`,
+`docs/productivity/grilling.md`, and `to-spec`'s opening paragraph, user-story
+line, and omission-check bullets carry divergence 11 since 2026-11-05; an
+upstream edit to `grilling`'s first or last paragraph will conflict with it,
+so keep provenance, the risk list, and the bounded completion line while
 absorbing the rest. Git also auto-merged a duplicated paragraph in
 `docs/engineering/to-tickets.md` after upstream reordered its questions, so
 scan resolved docs for duplicated lines.
@@ -672,3 +717,20 @@ before the binding rule was written) and by one real Orca dispatch into the
 fork repository. An explicit duplicate-dispatch rule was dropped because the
 agent already refused both duplicate shapes without one. The plugin version
 was bumped by hand to `1.3.12`.
+
+### 2026-11-05: Give requirements provenance and list unobserved failures as risks
+
+Two sessions, one Codex and one Claude, planned a fix for the same Office 365
+`4.3.2 Concurrent connections limit exceeded` incident and differed by two
+orders of magnitude in size. Comparing their transcripts showed the gap came
+from the questions, not the answers: the first started from an open "how
+should we plan this" and its grilling proposed an SLA, alerting, and retry
+rules that the user accepted as recommended; the second started from "this PR
+does too much" and asked only scope questions. Both agents agreed the rule
+belongs in `grilling` and `to-spec`, where requirements are born, rather than
+in either harness's global instructions or one agent's memory, since both
+harnesses load this plugin (divergence 11). Codex's review sharpened the rule:
+an unobserved failure still becomes a requirement when a stated goal needs
+it, a stated or askable goal (an SLA) needs no incident, and accepting a
+recommendation does not make the requirement the user's. The plugin version
+was bumped by hand to `1.3.14`.

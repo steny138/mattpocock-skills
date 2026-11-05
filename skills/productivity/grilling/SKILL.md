@@ -5,6 +5,8 @@ description: Grill the user relentlessly about a plan, decision, or idea. Use wh
 
 Interview the user relentlessly until you reach a shared understanding. Map this as a **design tree**: every decision branches into the decisions that hang off it.
 
+Grow the tree only inside the scope the user has set, and give every branch its **provenance**: a verified fact (an incident, the code, a protocol), a goal or constraint the user stated, or your own proposal, labelled as yours. A goal the user has not stated (a deadline, an SLA) is a fair question, asked open, with no default that adds it. A failure that has not happened is a **risk**, not a branch, unless a stated goal cannot be met without handling it; collect risks and list them once, for the user to take on or leave. Recommend the smallest answer that meets the stated goals, and name the cost of any recommendation that adds scope.
+
 Work the tree in **rounds**. The **frontier** is every decision whose prerequisites are already settled: the questions you can ask _now_ without guessing at answers you haven't heard yet. Ask the whole frontier in one round: number each question and give your recommended answer. Then wait for the user's answers before the next round.
 
 Format a round like so:
@@ -25,4 +27,4 @@ Each round the user answers reshapes the tree: settled decisions push the fronti
 
 Finding _facts_ is your job, never the user's. When a frontier question needs a fact from the environment (filesystem, tools, etc.), dispatch a sub-agent to find it; don't ask the user for anything you could look up yourself. Don't block on it: a running exploration is an unsettled prerequisite, so only the questions downstream of it wait for the sub-agent to report; ask the rest of the frontier now. The _decisions_ are the user's: put each to them and wait.
 
-The session is done when the frontier is empty: every branch of the design tree visited, nothing left silently assumed. Do not act on it until the user confirms you have reached a shared understanding.
+The session is done when the frontier is empty: every branch with provenance visited, every risk listed, nothing left silently assumed. Do not act on it until the user confirms you have reached a shared understanding.

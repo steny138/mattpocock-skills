@@ -6,6 +6,8 @@ disable-model-invocation: true
 
 This skill takes the current conversation context and codebase understanding and produces a spec. Do not reopen requirements discovery or interview the user for new product decisions. Synthesize what you already know. The only user exchanges are confirming the proposed test seams before writing, and answering any open questions the omission check in step 4 surfaces.
 
+Carry each requirement's **provenance** from the conversation: a verified fact, a goal or constraint the user stated, or an agent proposal the user accepted, marked `(agent proposal)`. A failure that has not happened, and that no stated goal needs handled, is a **risk**: list it under Further Notes, outside the stories and decisions.
+
 ## Process
 
 1. Explore the repo to understand the current state of the codebase, if you haven't already. Use the project's domain glossary vocabulary throughout the spec, and respect any ADRs in the area you're touching.
@@ -50,7 +52,7 @@ A LONG, numbered list of user stories. Each user story should be in the format o
 1. As a mobile bank customer, I want to see balance on my accounts, so that I can make better informed decisions about my spending
 </user-story-example>
 
-This list of user stories should be extremely extensive and cover all aspects of the feature.
+This list of user stories should be extremely extensive and cover every aspect of the agreed scope.
 
 ## Implementation Decisions
 
@@ -94,6 +96,7 @@ Any further notes about the feature.
 
    - Answered in the conversation: the spec missed it. Add the answer to the spec.
    - Unanswered, and the answer would change scope, externally observable behavior, architecture, or a test seam: an open question. Ask the user, then write the answer into the spec.
+   - Probing only a risk, a failure with no incident, code path, or stated goal behind it: list it under Further Notes as a risk.
    - Anything else: drop it.
 
 5. Show the user the spec path, the confirmed test seams, and the omission check's result: how many decisions you added, and each open question with its answer. Do not create, edit, label, or comment on an issue as part of this skill.
