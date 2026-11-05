@@ -1,5 +1,11 @@
 # mattpocock-skills
 
+## 1.3.14
+
+### Patch Changes
+
+- `grilling` and `to-spec` no longer let the agent's questions set the scope. You tend to accept recommended answers, so an agent that asked about SLAs, alerting, and retry rules for a single incident used to grow those into requirements and then into custom mechanisms. Each branch and requirement now carries its provenance: a verified fact, a goal or constraint you stated, or an agent proposal, which the spec marks `(agent proposal)`. A failure that has not happened is listed as a risk for you to take on, unless a goal you stated needs it handled. `grilling` can still ask about a goal you have not stated, without recommending one by default, and its recommendations aim at the smallest answer that meets your goals. `to-spec` bounds its user stories to the agreed scope, writes risks under Further Notes, and its omission check lists a risk-only question instead of asking it.
+
 ## 1.3.13
 
 ### Patch Changes
