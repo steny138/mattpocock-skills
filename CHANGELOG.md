@@ -1,5 +1,11 @@
 # mattpocock-skills
 
+## 1.3.15
+
+### Patch Changes
+
+- A plan dispatched into another repository's worktree no longer stops mid-run to ask you something in a terminal you are not watching. `to-plan` settles every decision while planning: when one depends on data it cannot read, such as a production row count or another repository's tooling, it tells you what to look up, takes the result you paste back, and records the decision with that evidence under planning decisions. Steps only you can do, such as a deploy, go under a new `After Completion` list instead of a task. `implement` checks a plan for any remaining wait before dispatching it and settles it with you first. Inside Orca, `implement` posts its status to the worktree comment and marks it unread whenever the plan turns blocked or completed. A plan can carry `Pull request: base <ref>`, and `implement` then pushes and opens a ready pull request after review, staying blocked if that fails. Without the field nothing is pushed. `implement-spec` ignores the field and lists every plan's `After Completion` steps in its final report.
+
 ## 1.3.14
 
 ### Patch Changes

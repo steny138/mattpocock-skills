@@ -165,8 +165,15 @@ The following invariants are mandatory:
   corrective task or waiver. Approved corrective tasks make the smallest change
   that resolves their finding, are verified by their own tests and a rerun of
   final verification, and are not reviewed again.
-- Completion does not push, open a pull request, close the source ticket, delete
-  the plan, or perform other external cleanup automatically.
+- Completion pushes and opens a ready pull request only when the plan carries
+  `**Pull request:** base <ref>`, after review and final verification; a failed
+  push or pull request leaves the plan blocked, never completed. Without the
+  field, completion does not push or open a pull request. It never closes the
+  source ticket, deletes the plan, or performs other external cleanup.
+- Inside Orca, the run posts status (`orca worktree set --worktree current
+  --comment ... --unread`, plus `--pr` once one exists) whenever the plan turns
+  blocked or completed, and leaves the board status alone. The completion
+  report ends with the plan's `## After Completion` steps.
 
 Decision reason: execution must be resumable and safe around user-owned working
 tree state. Material decisions stay with the user; mechanical execution can
@@ -175,7 +182,10 @@ that the final three-dot review can see the implementation, avoiding the
 upstream ordering problem where uncommitted work was invisible to review. The
 single review follows upstream, which reviews once and does not re-review its
 fixes: an open-ended review always finds something, so reviewing every round
-of fixes never converges.
+of fixes never converges. The pull request is a plan field, not a task step,
+so it can only follow review; a plan once wrote it as a task and opened the
+pull request before review. Orca status replaces a reply channel the
+dispatched session does not have.
 
 ### 5. The fork is a distinct distribution
 
@@ -242,7 +252,10 @@ branch, merger subagents) but makes it an executor of approved plans only:
 - The orchestrator keeps a run record at `.scratch/<feature>/implement-spec.md`
   with a `Resume Here`, so the whole run is resumable.
 - Any final integration-branch review finding stops for user approval.
-- Completion does not push, open a pull request, or close tickets.
+- Completion does not push, open a pull request, or close tickets. Implementers
+  ignore a plan's `**Pull request:**` and post no Orca status, because the
+  integration branch, not a ticket branch, is what ships. The final report
+  lists every plan's `## After Completion` steps.
 
 Decision reason: parallel execution is useful, but a mode that designs work
 from bare tickets and closes the loop autonomously would bypass divergences 1,
@@ -375,8 +388,12 @@ from the session it is in. This fork binds each plan to one repository:
   written `unbound (dispatch)` and `to-plan` only verifies that its path is a
   git main checkout.
 - `implement` matches `**Repository:**` against the current repository's main
-  checkout before anything else. On a mismatch it changes no file, the plan
-  included, and dispatches. Inside Orca (`TERM_PROGRAM=Orca` and an `orca` CLI)
+  checkout before anything else. On a mismatch it first settles the plan's
+  waits (a step that stops for the user, or needs a repository or tool outside
+  the plan): it asks the user, writes the answer under planning decisions,
+  moves human-only steps under `## After Completion`, and records the edit
+  under `## Deviations`. That plan edit is the only file it changes before it
+  dispatches. Inside Orca (`TERM_PROGRAM=Orca` and an `orca` CLI)
   with the target registered, it runs `orca worktree create --repo path:...
   --agent claude --prompt "/implement <plan>"` without asking, and stops with
   the `operationId` on failure. Otherwise it creates a git worktree at
@@ -392,7 +409,12 @@ Decision reason: a session loads only the `CLAUDE.md`, hooks, and rules of the
 repository it started in. Executing a cross-repository plan from one session
 silently bypasses the other repository's guardrails, and the existing "touch
 another repository outside the plan" stop never fires because that repository
-is inside the plan. `implement-spec` stays single-repository.
+is inside the plan. `implement-spec` stays single-repository. Waits are
+settled before dispatch because the dispatched session has no channel back to
+the dispatching one: on 2026-11-09 a dispatched SQL plan stopped twice for the
+user (a decision deferred to a production row count reachable only through
+another repository's tooling, then a human deploy), asking in a terminal the
+user was not watching.
 
 Primary implementation:
 
@@ -743,3 +765,29 @@ it or the user takes it into scope, a stated or askable goal (an SLA) needs no
 incident, an accepted proposal is an agreed requirement that keeps its agent
 origin, and a code path behind a risk shows it is real, not that this change
 must handle it. The plugin version was bumped by hand to `1.3.14`.
+
+### 2026-11-09: Settle a plan's waits before dispatch
+
+A session in an API repository dispatched its database project plan into an
+Orca worktree and kept running its own. The database session then stopped
+twice for the user: its
+first step left the `ONLINE = ON` choice to a production row count reachable
+only through the API repository's data access tooling (a hard stop for it),
+and a later task waited for a human deploy to staging. With no channel back, it
+asked in its own terminal, which the user was not watching. The cause was the
+plan, not the dispatch mode, so `to-plan` now settles every decision while
+planning (the user supplies data it cannot read), records it under planning
+decisions, and moves human-only steps to `## After Completion`; `implement`
+settles any remaining waits before either dispatch path (divergence 10).
+Supervised orchestration was rejected as the fix: it would centralize
+questions but make the dispatching session, busy with its own plan, the
+bottleneck. Instead `implement` posts status to the Orca worktree comment and
+unread dot (a cross-session message needs the dispatcher's name, and an
+orchestration message needs a Run, which a plain dispatch lacks), and opens a
+ready pull request after review only for a plan with `**Pull request:**`,
+since that plan had opened its pull request as a task before review
+(divergence 4). `implement-spec` ignores the field (divergence 6). Verified by
+`claude -p --plugin-dir` replays, three runs per case: dispatch with a wait
+created a worktree 3/3 before the rule and 0/3 after; `to-plan` already asked
+before writing in this scenario, so its replay is a regression guard. The
+plugin version was bumped by hand to `1.3.15`.

@@ -16,6 +16,8 @@ The plan is a local coordination artifact for agents sharing one workspace. Writ
 
 Read the source the user supplied in full. If the source is the conversation or anything another agent cannot read from the workspace, capture the agreed work-item contract and acceptance criteria in the plan. Resolve any interpretation that would change scope, public behavior, architecture, or test seams with the user before writing the plan.
 
+Settle every decision the plan needs now, so the session that executes it never waits on the user. When a decision depends on data the workspace cannot show (production state, another repository's tooling), tell the user what to look up and why, and take the result they paste back; you only read files. Then ask the decision. A source that defers a decision to execution ("decide after checking the row count") is one to settle here too. Record each decision with its evidence under the plan's `### Planning decisions`, whatever the source.
+
 Plan one work item only. For a set of tracer-bullet tickets, plan only the selected ticket rather than the whole feature: usually a frontier ticket for `/implement`, or each ticket in turn when every plan must be approved before `/implement-spec`. A plan for a ticket whose blockers have not landed yet may go stale; the executor re-validates it before editing. This is not the cross-ticket planner removed when planning was unified into `/to-spec` and `/to-tickets`.
 
 A plan belongs to exactly one repository, because `/implement` runs it in a session started inside that repository, under its own agent instructions, hooks, and rules. When the work item changes several repositories, write one plan per target repository in this invocation and present them together for one approval. Put the target repository's folder name in each work-item slug, and record any ordering between them (one repository's change landing before another's) in each affected plan's `## Constraints`.
@@ -73,6 +75,10 @@ Use this structure:
 
 <For a conversation or non-readable source, capture the agreed behavior and acceptance criteria. Otherwise point to the workspace-readable source without restating it.>
 
+### Planning decisions
+
+- <decision settled while planning>: <its evidence, such as the row count the user supplied>
+
 ## Constraints
 
 - <verified scope or repository constraint>
@@ -117,12 +123,18 @@ Use this structure:
 - Commands: pending
 - Code review: pending
 
+## After Completion
+
+- <a step only a human performs, such as deploying, and the check that follows it>
+
 ## Resume Here
 
 Plan not started. Begin with Task 1, first unchecked step.
 ```
 
 For a plan whose target is not the current repository, write `**Workspace:**`, `**Branch:**`, and `**Review fixed point:**` as `unbound (dispatch)`; `/implement` dispatches it and the session in the target binds them. Add `**Base:** <ref>` after `**Repository:**` only when the target's worktree must start from something other than its default base.
+
+Tasks hold only work an agent completes, verifies, and commits on its own. List each step only a human performs (deploying, checking a shared environment) under `## After Completion` as a plain list, or write `- None.`; `/implement` reports it when the plan completes. Data only another repository or tool provides, once the user supplies it, goes under `## Constraints`. When the user wants the finished branch pushed and a pull request opened, add `**Pull request:** base <ref>` after `**Repository:**` (and `**Base:**`); `/implement` opens it after review. That field is the plan's only route to a push or pull request.
 
 Keep each task heading exactly `### Task <n>: <title> (<status>)`, with `<status>` one of `pending`, `in-progress`, `completed`, or `blocked` inside ASCII parentheses, even when the plan is written in another language: `(pending)`, never `（pending）`. Tools that track `/implement` read task progress from this line.
 
@@ -144,4 +156,4 @@ Run this step only when the work item's source is the conversation or anything e
 
 ### 6. Stop at the boundary
 
-Show the user each plan's path and target repository, task list, test seams, and any remaining risks. When step 5 ran, also show how many decisions you added and each open question with its answer. Ask for confirmation. Do not publish the plan to an issue tracker, edit product code, stage files, commit, push, or invoke `/implement` in this invocation.
+Show the user each plan's path and target repository, task list, test seams, `### Planning decisions`, `## After Completion` steps, the `**Pull request:**` base when set, and any remaining risks. When step 5 ran, also show how many decisions you added and each open question with its answer. Ask for confirmation. Do not publish the plan to an issue tracker, edit product code, stage files, commit, push, or invoke `/implement` in this invocation.

@@ -22,6 +22,10 @@ The implementation plan is the seam between deciding how to build and executing 
 
 Every plan also names its target `Repository`. A plan for a repository other than the one you planned in is written unbound, with no workspace or branch yet, because [implement](https://aihero.dev/skills-implement) will dispatch it into a worktree of that repository and the session there binds it. For such a target, `to-plan` checks only that the path is a git main checkout; the session inside that repository challenges the rest under its own rules.
 
+A plan never leaves a decision for execution. If a choice depends on something the workspace cannot show, like a production row count or data behind another repository's tooling, `to-plan` tells you what to look up and why, takes the result you paste back, and then asks the decision. It records the decision and that evidence under the plan's `Planning decisions`. This also covers a source that says "decide after checking". The session that executes the plan, often one dispatched into another repository's worktree, then has nothing to stop and ask you.
+
+Tasks hold only what an agent can finish, verify, and commit by itself. Steps only you can perform, such as deploying to a shared environment and checking it there, go under `After Completion`, which `implement` reads back to you when the plan completes. If you want the finished branch pushed and a pull request opened, the plan carries a `Pull request` base, and that field is the only way a plan asks for either.
+
 The plan owns **how** one work item will be implemented. A workspace-readable spec or ticket continues to own **what** must be delivered. When the source exists only in conversation, `to-plan` captures the agreed contract so a later agent does not need hidden context.
 
 That contract is written by an agent that has seen the whole conversation, so a missing decision reads as present to it. For a conversation source, `to-plan` therefore runs the same omission check as [to-spec](https://aihero.dev/skills-to-spec): it maps every settled decision to the contract and adds the missing ones, and a [subagent](https://www.aihero.dev/ai-coding-dictionary/subagent) given the plan but not the conversation lists what it would need to ask before implementing. Only a question that would change scope, behavior, architecture, or a test seam reaches you, and its answer goes into the contract and any task it affects. When the source is a spec or ticket, the plan points at it instead, and the check does not run.
@@ -35,6 +39,14 @@ No. Those skills own feature decisions and tracer-bullet decomposition. `to-plan
 **My change spans two repositories. Do I run it twice?**
 
 No. One invocation writes a plan per repository into the `.scratch/` of the worktree you planned in, with any ordering between them in each plan's constraints. You approve them together, then run `/implement` on each; a plan for the other repository is dispatched there instead of executed beside you.
+
+**It stopped and asked me to run a query myself. Why not just plan to check it later?**
+
+A deferred check becomes a task that stops mid-run and waits for you, often in another worktree's terminal you are not watching. `to-plan` only reads files, so production data or another repository's tooling comes from you, once, while you are already in the planning conversation.
+
+**Where does "deploy to staging" go?**
+
+Under `After Completion`. The executing session finishes the agent-only tasks, reports the plan completed, and lists those steps for you, instead of sitting blocked until you deploy.
 
 **Why is the plan under `.scratch/` instead of committed?**
 
@@ -52,6 +64,7 @@ Not in the same invocation. The stop is the phase boundary: review the plan firs
 
 - The plan covers one work item only, and each plan names exactly one repository.
 - Every behavior task has an agreed test seam.
+- No task waits for you: every decision is under `Planning decisions` with its evidence, and human-only steps are under `After Completion`.
 - When you planned from the conversation, it tells you how many decisions its omission check added to the contract.
 - Another agent can start from `Resume Here`.
 - No product code changes during planning.

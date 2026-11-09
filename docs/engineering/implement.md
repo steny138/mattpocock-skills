@@ -38,7 +38,9 @@ The plan's `Repository` decides whether the run executes or dispatches:
 | Another repository, and you are inside Orca with that repository registered | A new Orca worktree of it starts its own Claude session running `/implement` on the plan, without asking |
 | Another repository, outside Orca or not registered in Orca | A git worktree is created beside it at `<repo>.worktrees/<slug>`, and the run stops with the `/implement` command to run there |
 
-Either way the dispatching session changes no file, the plan included. An executing run follows the approved plan in order:
+Before either kind of dispatch, the run reads the plan for waits: a step that stops for your reply or action, or one that needs a repository or tool outside the plan. A dispatched session meets those alone, in a terminal you may not be watching, so the dispatching session asks you about each one first. It writes your answer into the plan's `Planning decisions`, moves human-only steps under `After Completion`, and records the edit as a deviation. That edit is the only file it changes. The report then tells you the new session will ask any question in its own terminal, and inside Orca will post its status to the worktree's comment.
+
+An executing run follows the approved plan in order:
 
 1. Validate the plan against the current workspace and resume pointer.
 2. Drive [tdd](https://aihero.dev/skills-tdd) at each pre-agreed seam.
@@ -60,6 +62,10 @@ The local plan document is the seam between planning and execution. It records t
 
 Because the edits would run under the wrong rules. A session only loads the `CLAUDE.md`, hooks, and rules of the repository it started in, so editing a second repository from it silently bypasses that repository's guardrails. Dispatching costs one extra session and buys the right ones. When the change spans repositories, [to-plan](https://aihero.dev/skills-to-plan) writes one plan per repository, and each is dispatched on its own.
 
+**I asked it to dispatch a plan, but it asked me questions first. Why?**
+
+The plan still had a wait: a decision left for execution, a step only you can do, or data from a repository outside the plan. Dispatched, that session would stop mid-run and ask you in a terminal you are not watching. Answering here, while you are in front of it, lets the dispatched session run without stopping.
+
 **It refused to bind a dispatched plan on `main`. Why?**
 
 Binding there would commit every task straight onto the default branch. Switch to a feature branch (or let dispatch create the worktree) and run it again.
@@ -74,7 +80,11 @@ Not with `/implement`: one invocation, one plan. Each run uses the same working 
 
 **Can it open a pull request or push when it finishes?**
 
-No. The skill explicitly stops after local completion. It does not push, create a pull request, or remove the completed plan unless you ask separately. When you do ask the agent to write the PR, [pr](https://aihero.dev/skills-pr) shapes its body.
+Only when the plan asks for it. A plan with a `Pull request` base gets its branch pushed and a ready pull request opened against that base, after code review and final verification pass, with [pr](https://aihero.dev/skills-pr) shaping the body. If the push or the pull request fails, the plan stays blocked with the exact command, and a resumed run picks up there. Without that field the run stops after local completion. It never removes the completed plan unless you ask.
+
+**How do I know a run in another worktree needs me?**
+
+Inside Orca, the run posts its status to the worktree's comment and marks the worktree unread whenever the plan turns blocked or completed, so the sidebar shows what it needs. It asks the question itself in that worktree's terminal. When it completes, its report ends with the `After Completion` steps left for you, such as deploying.
 
 **Will `code-review` see the changes?**
 
@@ -94,7 +104,9 @@ No. Completion updates the local plan and commits the implementation; tracker st
 - Every completed task has evidence and a commit.
 - Another agent can resume at `Resume Here`.
 - Review runs once, and every finding is fixed or waived before completion.
-- A plan for another repository shows up as a new worktree of that repository, and nothing changes in the one you ran it from.
+- A plan for another repository shows up as a new worktree of that repository once its waits are settled with you, and nothing but that plan changes in the one you ran it from.
+- A dispatched run never stops on a wait (a decision, a human-only step, or another repository), and in Orca its worktree comment says when it is blocked or done.
+- A pull request appears only for a plan that names a `Pull request` base, and only after review.
 - `.scratch` never enters Git.
 
 ## Where it fits
