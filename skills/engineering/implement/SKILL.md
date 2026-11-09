@@ -22,7 +22,7 @@ First match the plan's repository. Its `**Repository:**` names the main checkout
 
 Before creating a worktree, read the plan for **waits**: a step that stops for the user's reply or action, or one that needs a repository or tool outside the plan. A dispatched session meets a wait alone, in a terminal the user is not watching, so settle each one here first. Ask the user the decision, or for the data it needs; write the answer under the plan's planning decisions; move each human-only step, or a task made only of them, under `## After Completion`; and record the edit under `## Deviations`. The user's answer approves the edit. Dispatch once the plan has no waits left.
 
-Inside Orca (`TERM_PROGRAM` is `Orca` and `command -v orca` succeeds), check that Orca knows the target: `orca repo show --repo path:<Repository> --json` returns `"ok": true` (it exits 0 either way). When it does, hand the plan to a new Orca worktree with its own Claude session, without asking:
+**Inside Orca** means `TERM_PROGRAM` is `Orca` and `command -v orca` succeeds. Inside Orca, check that Orca knows the target: `orca repo show --repo path:<Repository> --json` returns `"ok": true` (it exits 0 either way). When it does, hand the plan to a new Orca worktree with its own Claude session, without asking:
 
 ```bash
 orca worktree create --repo path:<Repository> --name <slug> --no-parent \
@@ -103,14 +103,14 @@ When the user interrupts or execution cannot continue, update the plan before yi
 
 Update progress at task completion or interruption, not after every routine tool call.
 
-Inside Orca (`TERM_PROGRAM` is `Orca` and `command -v orca` succeeds), **post status** whenever the plan turns `blocked` or `completed`, so the user sees it in Orca's sidebar without opening this terminal:
+Inside Orca, **post status** whenever the run stops to ask the user something and whenever the plan turns `blocked` or `completed`, so the user sees it in Orca's sidebar without opening this terminal:
 
 ```bash
 orca worktree set --worktree current --unread \
   --comment "<blocked|completed>: <the action the user needs to take, or none>"
 ```
 
-Add `--pr <number>` once a pull request exists. Leave the workspace board status to the user. Outside Orca, skip this.
+Add `--pr <number>` once a pull request exists. Leave the workspace board status to the user. Skip this outside Orca, and when the command answers `selector_not_found` because Orca does not manage this worktree.
 
 ### 6. Review once before completion
 
@@ -129,4 +129,4 @@ Record the fresh final commands, result summaries, Standards/Spec review outcome
 
 When the plan has a `**Pull request:** base <ref>`, open it before finishing: push the branch, call the Skill tool with `pr` for the body, and run `gh pr create --base <ref>` as a ready pull request. Record the push and the pull request URL under `## Final Verification`. If the push or the pull request fails, set `**Execution:** blocked` with the exact command and its output under `## Blockers` and `## Resume Here`, so a resumed run starts at opening the pull request, and post status; never reshape the command to get past a refusal. Without `**Pull request:**`, the branch stays local: no push, no pull request.
 
-Then set `**Execution:** completed`, post status, and end the report with the plan's `## After Completion` steps for the user to perform. Keep the completed plan in `.scratch/` until the user explicitly asks to remove it, and leave its cleanup to them.
+Then set `**Execution:** completed`, post status, and end the report with the plan's `## After Completion` steps for the user to perform. Keep the completed plan in `.scratch/` until the user explicitly asks to remove it.
