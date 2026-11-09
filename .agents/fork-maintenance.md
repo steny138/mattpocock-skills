@@ -765,3 +765,28 @@ it or the user takes it into scope, a stated or askable goal (an SLA) needs no
 incident, an accepted proposal is an agreed requirement that keeps its agent
 origin, and a code path behind a risk shows it is real, not that this change
 must handle it. The plugin version was bumped by hand to `1.3.14`.
+
+### 2026-11-09: Settle a plan's waits before dispatch
+
+A DomainService session dispatched its SQL project plan into an Orca worktree
+and kept running its own. The SQL session then stopped twice for the user: its
+first step left the `ONLINE = ON` choice to a production row count reachable
+only through the DomainService repository's DAB tooling (a hard stop for it),
+and a later task waited for a human deploy to qat. With no channel back, it
+asked in its own terminal, which the user was not watching. The cause was the
+plan, not the dispatch mode, so `to-plan` now settles every decision while
+planning (the user supplies data it cannot read), records it under planning
+decisions, and moves human-only steps to `## After Completion`; `implement`
+settles any remaining waits before either dispatch path (divergence 10).
+Supervised orchestration was rejected as the fix: it would centralize
+questions but make the dispatching session, busy with its own plan, the
+bottleneck. Instead `implement` posts status to the Orca worktree comment and
+unread dot (a cross-session message needs the dispatcher's name, and an
+orchestration message needs a Run, which a plain dispatch lacks), and opens a
+ready pull request after review only for a plan with `**Pull request:**`,
+since that plan had opened its pull request as a task before review
+(divergence 4). `implement-spec` ignores the field (divergence 6). Verified by
+`claude -p --plugin-dir` replays, three runs per case: dispatch with a wait
+created a worktree 3/3 before the rule and 0/3 after; `to-plan` already asked
+before writing in this scenario, so its replay is a regression guard. The
+plugin version was bumped by hand to `1.3.15`.
