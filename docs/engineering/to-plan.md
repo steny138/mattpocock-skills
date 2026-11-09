@@ -22,7 +22,7 @@ The implementation plan is the seam between deciding how to build and executing 
 
 Every plan also names its target `Repository`. A plan for a repository other than the one you planned in is written unbound, with no workspace or branch yet, because [implement](https://aihero.dev/skills-implement) will dispatch it into a worktree of that repository and the session there binds it. For such a target, `to-plan` checks only that the path is a git main checkout; the session inside that repository challenges the rest under its own rules.
 
-A plan never leaves a decision for execution. If a choice depends on something the workspace cannot show, like a production row count or data behind another repository's tooling, `to-plan` tells you what to look up and why, takes the result you paste back, and then asks the decision. It records the decision and that evidence under the plan's planning decisions. This also covers a source that says "decide after checking". The session that executes the plan, often one dispatched into another repository's worktree, then has nothing to stop and ask you.
+A plan never leaves a decision for execution. If a choice depends on something the workspace cannot show, like a production row count or data behind another repository's tooling, `to-plan` tells you what to look up and why, takes the result you paste back, and then asks the decision. It records the decision and that evidence under the plan's `Planning decisions`. This also covers a source that says "decide after checking". The session that executes the plan, often one dispatched into another repository's worktree, then has nothing to stop and ask you.
 
 Tasks hold only what an agent can finish, verify, and commit by itself. Steps only you can perform, such as deploying to a shared environment and checking it there, go under `After Completion`, which `implement` reads back to you when the plan completes. If you want the finished branch pushed and a pull request opened, the plan carries a `Pull request` base, and that field is the only way a plan asks for either.
 
@@ -44,7 +44,7 @@ No. One invocation writes a plan per repository into the `.scratch/` of the work
 
 A deferred check becomes a task that stops mid-run and waits for you, often in another worktree's terminal you are not watching. `to-plan` only reads files, so production data or another repository's tooling comes from you, once, while you are already in the planning conversation.
 
-**Where does "deploy to qat" go?**
+**Where does "deploy to staging" go?**
 
 Under `After Completion`. The executing session finishes the agent-only tasks, reports the plan completed, and lists those steps for you, instead of sitting blocked until you deploy.
 
@@ -64,7 +64,7 @@ Not in the same invocation. The stop is the phase boundary: review the plan firs
 
 - The plan covers one work item only, and each plan names exactly one repository.
 - Every behavior task has an agreed test seam.
-- No task waits for you: every decision is under planning decisions with its evidence, and human-only steps are under `After Completion`.
+- No task waits for you: every decision is under `Planning decisions` with its evidence, and human-only steps are under `After Completion`.
 - When you planned from the conversation, it tells you how many decisions its omission check added to the contract.
 - Another agent can start from `Resume Here`.
 - No product code changes during planning.

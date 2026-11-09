@@ -38,7 +38,7 @@ The plan's `Repository` decides whether the run executes or dispatches:
 | Another repository, and you are inside Orca with that repository registered | A new Orca worktree of it starts its own Claude session running `/implement` on the plan, without asking |
 | Another repository, outside Orca or not registered in Orca | A git worktree is created beside it at `<repo>.worktrees/<slug>`, and the run stops with the `/implement` command to run there |
 
-Before either kind of dispatch, the run reads the plan for waits: a step that stops for your reply or action, or one that needs a repository or tool outside the plan. A dispatched session meets those alone, in a terminal you may not be watching, so the dispatching session asks you about each one first. It writes your answer into the plan's planning decisions, moves human-only steps under `After Completion`, and records the edit as a deviation. That edit is the only file it changes. The report then tells you the new session will ask any question in its own terminal, and inside Orca will post its status to the worktree's comment.
+Before either kind of dispatch, the run reads the plan for waits: a step that stops for your reply or action, or one that needs a repository or tool outside the plan. A dispatched session meets those alone, in a terminal you may not be watching, so the dispatching session asks you about each one first. It writes your answer into the plan's `Planning decisions`, moves human-only steps under `After Completion`, and records the edit as a deviation. That edit is the only file it changes. The report then tells you the new session will ask any question in its own terminal, and inside Orca will post its status to the worktree's comment.
 
 An executing run follows the approved plan in order:
 
@@ -105,7 +105,7 @@ No. Completion updates the local plan and commits the implementation; tracker st
 - Another agent can resume at `Resume Here`.
 - Review runs once, and every finding is fixed or waived before completion.
 - A plan for another repository shows up as a new worktree of that repository once its waits are settled with you, and nothing but that plan changes in the one you ran it from.
-- A dispatched run reaches completion without stopping for you, and in Orca its worktree comment says when it is blocked or done.
+- A dispatched run never stops on a wait (a decision, a human-only step, or another repository), and in Orca its worktree comment says when it is blocked or done.
 - A pull request appears only for a plan that names a `Pull request` base, and only after review.
 - `.scratch` never enters Git.
 

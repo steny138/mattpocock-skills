@@ -20,7 +20,7 @@ First match the plan's repository. Its `**Repository:**` names the main checkout
 
 `<slug>` is the plan's file name without `-plan.md`.
 
-Before creating a worktree, read the plan for **waits**: a step that stops for the user's reply or action, or one that needs a repository or tool outside the plan. A dispatched session meets a wait alone, in a terminal the user is not watching, so settle each one here first. Ask the user the decision, or for the data it needs; write the answer under the plan's planning decisions; move each human-only step, or a task made only of them, under `## After Completion`; and record the edit under `## Deviations`. The user's answer approves the edit. Dispatch once the plan has no waits left.
+Before creating a worktree, read the plan for **waits**: a step that stops for the user's reply or action, or one that needs a repository or tool outside the plan. A dispatched session meets a wait alone, in a terminal the user is not watching, so settle each one here first. Ask the user the decision, or for the data it needs; write the answer under the plan's `### Planning decisions`; move each human-only step, or a task made only of them, under `## After Completion`; and record the edit under `## Deviations`. The user's answer approves the edit. Dispatch once the plan has no waits left.
 
 **Inside Orca** means `TERM_PROGRAM` is `Orca` and `command -v orca` succeeds. Inside Orca, check that Orca knows the target: `orca repo show --repo path:<Repository> --json` returns `"ok": true` (it exits 0 either way). When it does, hand the plan to a new Orca worktree with its own Claude session, without asking:
 

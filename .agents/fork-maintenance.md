@@ -768,11 +768,12 @@ must handle it. The plugin version was bumped by hand to `1.3.14`.
 
 ### 2026-11-09: Settle a plan's waits before dispatch
 
-A DomainService session dispatched its SQL project plan into an Orca worktree
-and kept running its own. The SQL session then stopped twice for the user: its
+A session in an API repository dispatched its database project plan into an
+Orca worktree and kept running its own. The database session then stopped
+twice for the user: its
 first step left the `ONLINE = ON` choice to a production row count reachable
-only through the DomainService repository's DAB tooling (a hard stop for it),
-and a later task waited for a human deploy to qat. With no channel back, it
+only through the API repository's data access tooling (a hard stop for it),
+and a later task waited for a human deploy to staging. With no channel back, it
 asked in its own terminal, which the user was not watching. The cause was the
 plan, not the dispatch mode, so `to-plan` now settles every decision while
 planning (the user supplies data it cannot read), records it under planning
