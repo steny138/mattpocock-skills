@@ -34,7 +34,7 @@ Communication to and from subagents should be sparse. Communicate primarily thro
    - after the last task, run the plan's final verification and record it under `## Final Verification`, with `Code review:` set to deferred to the integration-branch review; do not run `code-review` per plan;
    - on any stop, set `**Execution:** blocked`, record the evidence and the decision needed under `## Blockers`, update `## Resume Here`, and report back;
    - when the plan is complete, merge the integration branch tip into its own branch, then report done;
-   - keep the branch local even when the plan carries `**Pull request:**`, and leave Orca status to the orchestrator: the integration branch is what ships.
+   - keep the branch local even when the plan carries `**Pull request:**`, and post no Orca status: the integration branch is what ships.
 
 7. When an implementer reports done, merge its branch to the integration branch with a **merger subagent**. When one reports blocked, mark the ticket blocked in the run record, relay the decision to the user, and keep the rest of the graph moving. A blocked ticket's dependents stay off the frontier.
 
