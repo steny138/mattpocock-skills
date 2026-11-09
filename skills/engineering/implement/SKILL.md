@@ -103,6 +103,15 @@ When the user interrupts or execution cannot continue, update the plan before yi
 
 Update progress at task completion or interruption, not after every routine tool call.
 
+Inside Orca (`TERM_PROGRAM` is `Orca` and `command -v orca` succeeds), **post status** whenever the plan turns `blocked` or `completed`, so the user sees it in Orca's sidebar without opening this terminal:
+
+```bash
+orca worktree set --worktree current --unread \
+  --comment "<blocked|completed>: <the action the user needs to take, or none>"
+```
+
+Add `--pr <number>` once a pull request exists. Leave the workspace board status to the user. Outside Orca, skip this.
+
 ### 6. Review once before completion
 
 After every planned task and final verification passes, call the Skill tool with `code-review` against the plan's review fixed point. This is the plan's only review.
@@ -116,4 +125,8 @@ If review reports any finding:
 
 Do not add or implement corrective tasks before approval. After approval, append the approved tasks, execute them under steps 2 to 4, and rerun final verification. Each corrective task makes the smallest change that resolves its finding; record anything else noticed while fixing it in the final report instead of folding it in. Do not call `code-review` again: an open-ended review of the fixes always finds something new, so the corrective tasks' tests and final verification are their check.
 
-Record the fresh final commands, result summaries, Standards/Spec review outcome, and each finding's resolution (the corrective task and its commit SHA, or the waiver and its reason) under `## Final Verification`. Only when all tasks and verification pass and every review finding is fixed or waived may the plan be set to `**Execution:** completed`. Keep the completed plan in `.scratch/` until the user explicitly asks to remove it. Do not push, create a pull request, or clean up the plan automatically.
+Record the fresh final commands, result summaries, Standards/Spec review outcome, and each finding's resolution (the corrective task and its commit SHA, or the waiver and its reason) under `## Final Verification`. Only when all tasks and verification pass and every review finding is fixed or waived may the plan finish.
+
+When the plan has a `**Pull request:** base <ref>`, open it before finishing: push the branch, call the Skill tool with `pr` for the body, and run `gh pr create --base <ref>` as a ready pull request. Record the push and the pull request URL under `## Final Verification`. If the push or the pull request fails, set `**Execution:** blocked` with the exact command and its output under `## Blockers` and `## Resume Here`, so a resumed run starts at opening the pull request, and post status; never reshape the command to get past a refusal. Without `**Pull request:**`, the branch stays local: no push, no pull request.
+
+Then set `**Execution:** completed`, post status, and end the report with the plan's `## After Completion` steps for the user to perform. Keep the completed plan in `.scratch/` until the user explicitly asks to remove it, and leave its cleanup to them.

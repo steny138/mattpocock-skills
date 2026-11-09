@@ -165,8 +165,15 @@ The following invariants are mandatory:
   corrective task or waiver. Approved corrective tasks make the smallest change
   that resolves their finding, are verified by their own tests and a rerun of
   final verification, and are not reviewed again.
-- Completion does not push, open a pull request, close the source ticket, delete
-  the plan, or perform other external cleanup automatically.
+- Completion pushes and opens a ready pull request only when the plan carries
+  `**Pull request:** base <ref>`, after review and final verification; a failed
+  push or pull request leaves the plan blocked, never completed. Without the
+  field, completion does not push or open a pull request. It never closes the
+  source ticket, deletes the plan, or performs other external cleanup.
+- Inside Orca, the run posts status (`orca worktree set --worktree current
+  --comment ... --unread`, plus `--pr` once one exists) whenever the plan turns
+  blocked or completed, and leaves the board status alone. The completion
+  report ends with the plan's `## After Completion` steps.
 
 Decision reason: execution must be resumable and safe around user-owned working
 tree state. Material decisions stay with the user; mechanical execution can
@@ -175,7 +182,10 @@ that the final three-dot review can see the implementation, avoiding the
 upstream ordering problem where uncommitted work was invisible to review. The
 single review follows upstream, which reviews once and does not re-review its
 fixes: an open-ended review always finds something, so reviewing every round
-of fixes never converges.
+of fixes never converges. The pull request is a plan field, not a task step,
+so it can only follow review; a plan once wrote it as a task and opened the
+pull request before review. Orca status replaces a reply channel the
+dispatched session does not have.
 
 ### 5. The fork is a distinct distribution
 

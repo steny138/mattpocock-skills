@@ -80,7 +80,11 @@ Not with `/implement`: one invocation, one plan. Each run uses the same working 
 
 **Can it open a pull request or push when it finishes?**
 
-No. The skill explicitly stops after local completion. It does not push, create a pull request, or remove the completed plan unless you ask separately. When you do ask the agent to write the PR, [pr](https://aihero.dev/skills-pr) shapes its body.
+Only when the plan asks for it. A plan with a `Pull request` base gets its branch pushed and a ready pull request opened against that base, after code review and final verification pass, with [pr](https://aihero.dev/skills-pr) shaping the body. If the push or the pull request fails, the plan stays blocked with the exact command, and a resumed run picks up there. Without that field the run stops after local completion. It never removes the completed plan unless you ask.
+
+**How do I know a run in another worktree needs me?**
+
+Inside Orca, the run posts its status to the worktree's comment and marks the worktree unread whenever the plan turns blocked or completed, so the sidebar shows what it needs. It asks the question itself in that worktree's terminal. When it completes, its report ends with the `After Completion` steps left for you, such as deploying.
 
 **Will `code-review` see the changes?**
 
@@ -100,7 +104,9 @@ No. Completion updates the local plan and commits the implementation; tracker st
 - Every completed task has evidence and a commit.
 - Another agent can resume at `Resume Here`.
 - Review runs once, and every finding is fixed or waived before completion.
-- A plan for another repository shows up as a new worktree of that repository, and nothing changes in the one you ran it from.
+- A plan for another repository shows up as a new worktree of that repository once its waits are settled with you, and nothing but that plan changes in the one you ran it from.
+- A dispatched run reaches completion without stopping for you, and in Orca its worktree comment says when it is blocked or done.
+- A pull request appears only for a plan that names a `Pull request` base, and only after review.
 - `.scratch` never enters Git.
 
 ## Where it fits
