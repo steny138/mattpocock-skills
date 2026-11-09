@@ -14,11 +14,13 @@ Execute one approved implementation plan to completion or a hard stop. The plan 
 
 Require the user to identify the plan. Read it, every source it points to, the applicable agent instructions, and the current repository state.
 
-First match the plan's repository. Its `**Repository:**` names the main checkout of the repository it changes; a plan without the field targets the current repository. The current repository's main checkout is the parent of `git rev-parse --path-format=absolute --git-common-dir`. When the two differ, dispatch the plan as described below and end the run there: this session leaves every file as it found it, the plan included, because only a session started inside the target repository loads that repository's own agent instructions, hooks, and rules.
+First match the plan's repository. Its `**Repository:**` names the main checkout of the repository it changes; a plan without the field targets the current repository. The current repository's main checkout is the parent of `git rev-parse --path-format=absolute --git-common-dir`. When the two differ, dispatch the plan as described below and end the run there: this session leaves every file as it found it, apart from settling the plan's waits, because only a session started inside the target repository loads that repository's own agent instructions, hooks, and rules.
 
 #### Dispatch
 
 `<slug>` is the plan's file name without `-plan.md`.
+
+Before creating a worktree, read the plan for **waits**: a step that stops for the user's reply or action, or one that needs a repository or tool outside the plan. A dispatched session meets a wait alone, in a terminal the user is not watching, so settle each one here first. Ask the user the decision, or for the data it needs; write the answer under the plan's planning decisions; move each human-only step, or a task made only of them, under `## After Completion`; and record the edit under `## Deviations`. The user's answer approves the edit. Dispatch once the plan has no waits left.
 
 Inside Orca (`TERM_PROGRAM` is `Orca` and `command -v orca` succeeds), check that Orca knows the target: `orca repo show --repo path:<Repository> --json` returns `"ok": true` (it exits 0 either way). When it does, hand the plan to a new Orca worktree with its own Claude session, without asking:
 
@@ -27,7 +29,7 @@ orca worktree create --repo path:<Repository> --name <slug> --no-parent \
   --agent claude --prompt "/implement <absolute plan path>" --json
 ```
 
-Add `--base-branch <Base>` only when the plan has a `**Base:**`; otherwise Orca uses the repository's default base. Report the worktree it created and stop. When the command or its agent launch fails, stop and report the error with any `operationId`, which the user can pass to `--retry-launch`; a git worktree beside a half-created Orca one would duplicate it.
+Add `--base-branch <Base>` only when the plan has a `**Base:**`; otherwise Orca uses the repository's default base. Report the worktree it created, and that its session asks any question in that worktree's terminal and posts its status to the worktree's Orca comment; then stop. When the command or its agent launch fails, stop and report the error with any `operationId`, which the user can pass to `--retry-launch`; a git worktree beside a half-created Orca one would duplicate it.
 
 Outside Orca, or when Orca does not know the target, create a git worktree of the target repository for the plan:
 
@@ -35,7 +37,7 @@ Outside Orca, or when Orca does not know the target, create a git worktree of th
 - **Branch:** a new branch named `<slug>`.
 - **Base:** the plan's `**Base:**` when present, else the target's `origin/HEAD`, else the branch its main checkout has checked out. Use refs already present locally; dispatch never fetches.
 
-Report the worktree path and the command to run there, `/implement <absolute plan path>`. The session started in that worktree binds the plan.
+Report the worktree path and the command to run there, `/implement <absolute plan path>`. The session started in that worktree binds the plan and asks any question in its own terminal.
 
 #### Challenge
 

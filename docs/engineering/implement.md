@@ -38,7 +38,9 @@ The plan's `Repository` decides whether the run executes or dispatches:
 | Another repository, and you are inside Orca with that repository registered | A new Orca worktree of it starts its own Claude session running `/implement` on the plan, without asking |
 | Another repository, outside Orca or not registered in Orca | A git worktree is created beside it at `<repo>.worktrees/<slug>`, and the run stops with the `/implement` command to run there |
 
-Either way the dispatching session changes no file, the plan included. An executing run follows the approved plan in order:
+Before either kind of dispatch, the run reads the plan for waits: a step that stops for your reply or action, or one that needs a repository or tool outside the plan. A dispatched session meets those alone, in a terminal you may not be watching, so the dispatching session asks you about each one first. It writes your answer into the plan's planning decisions, moves human-only steps under `After Completion`, and records the edit as a deviation. That edit is the only file it changes. The report then tells you the new session will ask any question in its own terminal, and inside Orca will post its status to the worktree's comment.
+
+An executing run follows the approved plan in order:
 
 1. Validate the plan against the current workspace and resume pointer.
 2. Drive [tdd](https://aihero.dev/skills-tdd) at each pre-agreed seam.
@@ -59,6 +61,10 @@ The local plan document is the seam between planning and execution. It records t
 **My plan changes another repository. Why didn't it just make the edits?**
 
 Because the edits would run under the wrong rules. A session only loads the `CLAUDE.md`, hooks, and rules of the repository it started in, so editing a second repository from it silently bypasses that repository's guardrails. Dispatching costs one extra session and buys the right ones. When the change spans repositories, [to-plan](https://aihero.dev/skills-to-plan) writes one plan per repository, and each is dispatched on its own.
+
+**I asked it to dispatch a plan, but it asked me questions first. Why?**
+
+The plan still had a wait: a decision left for execution, a step only you can do, or data from a repository outside the plan. Dispatched, that session would stop mid-run and ask you in a terminal you are not watching. Answering here, while you are in front of it, lets the dispatched session run without stopping.
 
 **It refused to bind a dispatched plan on `main`. Why?**
 

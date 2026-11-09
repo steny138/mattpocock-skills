@@ -375,8 +375,12 @@ from the session it is in. This fork binds each plan to one repository:
   written `unbound (dispatch)` and `to-plan` only verifies that its path is a
   git main checkout.
 - `implement` matches `**Repository:**` against the current repository's main
-  checkout before anything else. On a mismatch it changes no file, the plan
-  included, and dispatches. Inside Orca (`TERM_PROGRAM=Orca` and an `orca` CLI)
+  checkout before anything else. On a mismatch it first settles the plan's
+  waits (a step that stops for the user, or needs a repository or tool outside
+  the plan): it asks the user, writes the answer under planning decisions,
+  moves human-only steps under `## After Completion`, and records the edit
+  under `## Deviations`. That plan edit is the only file it changes before it
+  dispatches. Inside Orca (`TERM_PROGRAM=Orca` and an `orca` CLI)
   with the target registered, it runs `orca worktree create --repo path:...
   --agent claude --prompt "/implement <plan>"` without asking, and stops with
   the `operationId` on failure. Otherwise it creates a git worktree at
@@ -392,7 +396,12 @@ Decision reason: a session loads only the `CLAUDE.md`, hooks, and rules of the
 repository it started in. Executing a cross-repository plan from one session
 silently bypasses the other repository's guardrails, and the existing "touch
 another repository outside the plan" stop never fires because that repository
-is inside the plan. `implement-spec` stays single-repository.
+is inside the plan. `implement-spec` stays single-repository. Waits are
+settled before dispatch because the dispatched session has no channel back to
+the dispatching one: on 2026-11-09 a dispatched SQL plan stopped twice for the
+user (a decision deferred to a production row count reachable only through
+another repository's tooling, then a human deploy), asking in a terminal the
+user was not watching.
 
 Primary implementation:
 
