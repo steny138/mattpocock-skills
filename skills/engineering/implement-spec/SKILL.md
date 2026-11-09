@@ -33,7 +33,8 @@ Communication to and from subagents should be sparse. Communicate primarily thro
    - continue past a non-material deviation only after verifying and recording its equivalence; stop on any change to scope, observable behaviour, a contract, architecture responsibility, a test seam, the task breakdown, or core strategy;
    - after the last task, run the plan's final verification and record it under `## Final Verification`, with `Code review:` set to deferred to the integration-branch review; do not run `code-review` per plan;
    - on any stop, set `**Execution:** blocked`, record the evidence and the decision needed under `## Blockers`, update `## Resume Here`, and report back;
-   - when the plan is complete, merge the integration branch tip into its own branch, then report done.
+   - when the plan is complete, merge the integration branch tip into its own branch, then report done;
+   - keep the branch local even when the plan carries `**Pull request:**`, and leave Orca status to the orchestrator: the integration branch is what ships.
 
 7. When an implementer reports done, merge its branch to the integration branch with a **merger subagent**. When one reports blocked, mark the ticket blocked in the run record, relay the decision to the user, and keep the rest of the graph moving. A blocked ticket's dependents stay off the frontier.
 
@@ -43,4 +44,4 @@ Communication to and from subagents should be sparse. Communicate primarily thro
 
 10. To resume an interrupted run, find the run record in the orchestrating worktree it names, not wherever the session happens to be; if you cannot find it, ask the user for that worktree instead of starting a new run. Read the run record and every plan, verify each worktree and branch still matches, and continue from the run record's `## Resume Here`. Never restart a plan whose tasks are already committed.
 
-11. When review is clean, record the review outcome under each plan's `## Final Verification`, then report the integration branch and the per-ticket commits. Do not push, open a pull request, close or edit the tickets, or delete the spec, plans, or run record. Remove only the implementer worktrees whose branches have merged.
+11. When review is clean, record the review outcome under each plan's `## Final Verification`, then report the integration branch, the per-ticket commits, and every plan's `## After Completion` steps for the user to perform. Do not push, open a pull request, close or edit the tickets, or delete the spec, plans, or run record. Remove only the implementer worktrees whose branches have merged.

@@ -252,7 +252,10 @@ branch, merger subagents) but makes it an executor of approved plans only:
 - The orchestrator keeps a run record at `.scratch/<feature>/implement-spec.md`
   with a `Resume Here`, so the whole run is resumable.
 - Any final integration-branch review finding stops for user approval.
-- Completion does not push, open a pull request, or close tickets.
+- Completion does not push, open a pull request, or close tickets. Implementers
+  ignore a plan's `**Pull request:**` and post no Orca status, because the
+  integration branch, not a ticket branch, is what ships. The final report
+  lists every plan's `## After Completion` steps.
 
 Decision reason: parallel execution is useful, but a mode that designs work
 from bare tickets and closes the loop autonomously would bypass divergences 1,
